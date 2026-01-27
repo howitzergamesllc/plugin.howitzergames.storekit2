@@ -30,7 +30,7 @@ Ensure proper Condition in .csproj for iOS / MacCatalyst:
 
 ```xml
 <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-ios' OR '$(TargetFramework)' == 'net10.0-maccatalyst'">
-  <PackageReference Include="plugin.howitzergames.storekit2" Version="10.0.10" />
+  <PackageReference Include="plugin.howitzergames.storekit2" Version="10.0.20" />
 </ItemGroup>
 ```
 
