@@ -20,6 +20,9 @@ dotnet add package plugin.howitzergames.storekit2
 |:-------------------------------:|:-----------:|:-------------------:|
 | plugin.howitzergames.storekit2  |  10.0.10    | 10.0.10             |
 
+# Nuget.org
+[![NuGet](https://img.shields.io/nuget/v/plugin.howitzergames.storekit2.svg)](https://www.nuget.org/packages/plugin.howitzergames.storekit2/)
+
 # Troubleshooting
 
 # NuGet package consumption
