@@ -1,0 +1,5 @@
+﻿<Project>
+  <PropertyGroup>
+    <_StoreKit2AssemblyName>StoreKit2, Version=2.0.0, Culture=neutral, PublicKeyToken=null</_StoreKit2AssemblyName>
+  </PropertyGroup>
+</Project>
