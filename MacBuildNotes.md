@@ -170,7 +170,7 @@ dotnet build source\Apple\StoreKit2\StoreKit2.csproj
 ```
 - Publishing for testing changes
 ```zsh
-dotnet build source\Apple\StoreKit2\StoreKit2.csproj-c release
+dotnet build source\Apple\StoreKit2\StoreKit2.csproj -c release
 ```
 
 ### GitHub Publishing Commands
@@ -212,9 +212,6 @@ dotnet nuget push "$HOME/path/to/your/projects/plugin.howitzergames.storekit2/so
 ### Test Build the published package to verify changes work:
 - Build the example for ios
 ```zsh
-dotnet build samples\Apple\StoreKit2\ios\InAppBillingExample.csproj
+dotnet build samples/Apple/StoreKit2/TestApp/TestApp.csproj
 ```
-- Build the example for MacCatalyst
-```zsh
-dotnet build samples\Apple\StoreKit\maccatalyst\InAppBillingExample.csproj
-```
+

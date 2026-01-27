@@ -54,8 +54,9 @@
 
 	<ItemGroup>
 		<!--ProjectReference Include="..\..\..\..\source\Apple\StoreKit2\StoreKit2.csproj" /-->
-		<PackageReference Include="maui.storekit2.apple" Version="10.0.10" />
+		<PackageReference Include="plugin.howitzergames.storekit2" Version="10.0.20" />
 	</ItemGroup>
+	
 	<ItemGroup>
 		<PackageReference Include="Xamarin.Build.Download" Version="0.11.4" />
 	</ItemGroup>
