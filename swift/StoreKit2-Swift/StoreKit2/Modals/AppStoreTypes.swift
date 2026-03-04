@@ -9,76 +9,112 @@ import Foundation
 import UIKit
 import StoreKit
 
+// MARK: - AppStoreEnvironment
 @objc(AppStoreEnvironment)
-@available(iOS 16.0, tvOS 16.0, macOS 13.0, *)
+//@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
 public final class AppStoreEnvironmentWrapper: NSObject {
 
-    // MARK: - Raw value
     @objc public let rawValue: String
-
-    // MARK: - Init
+    
     @objc public init(rawValue: String) {
         self.rawValue = rawValue
+        super.init()
     }
     
-    // Swift-to-ObjC bridging initializer
-    public convenience init(swiftEnvironment: AppStore.Environment) {
-        self.init(rawValue: swiftEnvironment.rawValue)
+    public convenience init?(swiftEnvironment: Any?) {
+        if #available(iOS 16.0, tvOS 16.0, macOS 13.0, *),
+           let env = swiftEnvironment as? AppStore.Environment {
+            self.init(rawValue: env.rawValue)
+        } else {
+            // Older OS or unsupported type
+            self.init(rawValue: "unsupported")
+        }
     }
 
-    // MARK: - Static instances
     @objc public static var production: AppStoreEnvironmentWrapper {
-        AppStoreEnvironmentWrapper(rawValue: AppStore.Environment.production.rawValue)
+        if #available(iOS 16.0, tvOS 16.0, macOS 13.0, *) {
+            return AppStoreEnvironmentWrapper(swiftEnvironment: AppStore.Environment.production)!
+        } else {
+            return AppStoreEnvironmentWrapper(rawValue: "production")
+        }
     }
 
     @objc public static var sandbox: AppStoreEnvironmentWrapper {
-        AppStoreEnvironmentWrapper(rawValue: AppStore.Environment.sandbox.rawValue)
+        if #available(iOS 16.0, tvOS 16.0, macOS 13.0, *) {
+            return AppStoreEnvironmentWrapper(swiftEnvironment: AppStore.Environment.sandbox)!
+        } else {
+            return AppStoreEnvironmentWrapper(rawValue: "sandbox")
+        }
     }
 
     @objc public static var xcode: AppStoreEnvironmentWrapper {
-        AppStoreEnvironmentWrapper(rawValue: AppStore.Environment.xcode.rawValue)
+        if #available(iOS 16.0, tvOS 16.0, macOS 13.0, *) {
+            return AppStoreEnvironmentWrapper(swiftEnvironment: AppStore.Environment.xcode)!
+        } else {
+            return AppStoreEnvironmentWrapper(rawValue: "xcode")
+        }
     }
-    
+
     @objc public func isEqualToEnvironment(_ other: AppStoreEnvironmentWrapper?) -> Bool {
         guard let other = other else { return false }
         return self.rawValue == other.rawValue
     }
 }
 
+// MARK: - AppStorePlatform
 @objc(AppStorePlatform)
-@available(iOS 18.4, tvOS 18.4, macOS 15.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
 public final class AppStorePlatformWrapper: NSObject {
 
-    // MARK: - Raw value
     @objc public let rawValue: String
 
-    // MARK: - Init
     @objc public init(rawValue: String) {
         self.rawValue = rawValue
-    }
-    
-    // Swift-to-ObjC bridging initializer
-    public convenience init(swiftPlatform: AppStore.Platform) {
-        self.init(rawValue: swiftPlatform.rawValue)
+        super.init()
     }
 
-    // MARK: - Static instances
+    public convenience init?(swiftPlatform: Any?) {
+        if #available(iOS 18.4, tvOS 18.4, macOS 15.4, *),
+           let platform = swiftPlatform as? AppStore.Platform {
+            self.init(rawValue: platform.rawValue)
+        } else {
+            // Fallback for older OS or unsupported type
+            self.init(rawValue: "unsupported")
+        }
+    }
+
     @objc public static var iOS: AppStorePlatformWrapper {
-        AppStorePlatformWrapper(rawValue: AppStore.Platform.iOS.rawValue)
+        if #available(iOS 18.4, tvOS 18.4, macOS 15.4, *) {
+            return AppStorePlatformWrapper(swiftPlatform: AppStore.Platform.iOS)!
+        } else {
+            return AppStorePlatformWrapper(rawValue: "iOS")
+        }
     }
 
     @objc public static var macOS: AppStorePlatformWrapper {
-        AppStorePlatformWrapper(rawValue: AppStore.Platform.macOS.rawValue)
+        if #available(iOS 18.4, tvOS 18.4, macOS 15.4, *) {
+            return AppStorePlatformWrapper(swiftPlatform: AppStore.Platform.macOS)!
+        } else {
+            return AppStorePlatformWrapper(rawValue: "macOS")
+        }
     }
 
     @objc public static var tvOS: AppStorePlatformWrapper {
-        AppStorePlatformWrapper(rawValue: AppStore.Platform.tvOS.rawValue)
+        if #available(iOS 18.4, tvOS 18.4, macOS 15.4, *) {
+            return AppStorePlatformWrapper(swiftPlatform: AppStore.Platform.tvOS)!
+        } else {
+            return AppStorePlatformWrapper(rawValue: "tvOS")
+        }
     }
 
     @objc public static var visionOS: AppStorePlatformWrapper {
-        AppStorePlatformWrapper(rawValue: AppStore.Platform.visionOS.rawValue)
+        if #available(iOS 18.4, tvOS 18.4, macOS 15.4, *) {
+            return AppStorePlatformWrapper(swiftPlatform: AppStore.Platform.visionOS)!
+        } else {
+            return AppStorePlatformWrapper(rawValue: "visionOS")
+        }
     }
-    
+
     @objc public func isEqualToPlatform(_ other: AppStorePlatformWrapper?) -> Bool {
         guard let other = other else { return false }
         return self.rawValue == other.rawValue

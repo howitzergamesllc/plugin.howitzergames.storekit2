@@ -53,8 +53,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<!--ProjectReference Include="..\..\..\..\source\Apple\StoreKit2\StoreKit2.csproj" /-->
-		<PackageReference Include="plugin.howitzergames.storekit2" Version="10.0.20" />
+		<ProjectReference Include="..\..\..\..\source\Apple\StoreKit2\StoreKit2.csproj" />
+		<!--PackageReference Include="plugin.howitzergames.storekit2" Version="10.0.30" /-->
 	</ItemGroup>
 	
 	<ItemGroup>

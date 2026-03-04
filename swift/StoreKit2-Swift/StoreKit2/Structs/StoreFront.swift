@@ -23,12 +23,16 @@ public final class StoreFrontWrapper: NSObject {
     @objc public let identifier: String
     
     @objc
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+    //@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
     public var currency: CurrencyWrapper? {
-        guard let swiftCurrency = Locale.current.currency else {
-            return nil // Return nil if there's no currency (fallback to USD or other default)
+        if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) {
+            guard let swiftCurrency = Locale.current.currency else {
+                return nil
+            }
+            return CurrencyWrapper(swiftValue: swiftCurrency)
+        } else {
+            return nil
         }
-        return CurrencyWrapper(swiftValue: swiftCurrency)
     }
     
     /// ISO 3-letter currency code (e.g. "USD", "EUR")

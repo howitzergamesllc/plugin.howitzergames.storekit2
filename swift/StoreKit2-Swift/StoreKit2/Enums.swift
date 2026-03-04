@@ -41,8 +41,20 @@ public final class StoreKitErrorWrapper: NSObject {
         case .unsupported: code = .unsupported; underlyingError = nil
         @unknown default: code = .unknown; underlyingError = nil
         }
-        errorDescription = swiftError.errorDescription
-        failureReason = swiftError.failureReason
-        recoverySuggestion = swiftError.recoverySuggestion
+        if #available(iOS 15.4, *) {
+            errorDescription = swiftError.errorDescription
+        } else {
+            errorDescription = "Unsupported on this platform"
+        }
+        if #available(iOS 15.4, *) {
+            failureReason = swiftError.failureReason
+        } else {
+            failureReason = "Unsupported on this platform"
+        }
+        if #available(iOS 15.4, *) {
+            recoverySuggestion = swiftError.recoverySuggestion
+        } else {
+            recoverySuggestion = "Unsupported on this platform"
+        }
     }
 }

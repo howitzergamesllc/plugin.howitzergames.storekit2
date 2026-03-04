@@ -32,7 +32,7 @@ public final class AppStoreWrapper : NSObject
                 try await AppStore.sync()
                 completion(nil)
             } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 completion(nsError)
             }
         }
@@ -48,55 +48,71 @@ public final class AppStoreWrapper : NSObject
                 try await AppStore.showManageSubscriptions(in: scene)
                 completion(nil)
             } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 completion(nsError)
             }
         }
     }
 
     @objc
-    @available(iOS 17.0, *)
+    //@available(iOS 17.0, *)
     public static func showManageSubscriptionsAsync(
         in scene: UIWindowScene,
         subscriptionGroupID: String,
         completion: @escaping (NSError?) -> Void
     ) {
-        Task { @MainActor in
-            do {
-                try await AppStore.showManageSubscriptions(
-                    in: scene,
-                    subscriptionGroupID: subscriptionGroupID
-                )
-                completion(nil)
-            } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
-                completion(nsError)
+        if #available(iOS 17.0, *) {
+            Task { @MainActor in
+                do {
+                    try await AppStore.showManageSubscriptions(in: scene, subscriptionGroupID: subscriptionGroupID)
+                    completion(nil)
+                } catch {
+                    completion(NSError(
+                        domain: "plugin.howitzergames.storekit2",
+                        code: 1001,
+                        userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
+                    ))
+                }
             }
+        } else {
+            completion(NSError(
+                domain: "plugin.howitzergames.storekit2",
+                code: 1003,
+                userInfo: [NSLocalizedDescriptionKey: "Unsupported OS version"]
+            ))
         }
     }
     
     @objc
-    @available(iOS 16.0, *)
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
+    //@available(iOS 16.0, *)@available(macOS, unavailable)@available(tvOS, unavailable)
     public static func presentOfferCodeRedeemSheetAsync(
         in scene: UIWindowScene,
         completion: @escaping (NSError?) -> Void
     ) {
-        Task { @MainActor in
-            do {
-                try await AppStore.presentOfferCodeRedeemSheet(in: scene)
-                completion(nil)
-            } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
-                completion(nsError)
+        if #available(iOS 16.0, *) {
+            Task { @MainActor in
+                do {
+                    try await AppStore.presentOfferCodeRedeemSheet(in: scene)
+                    completion(nil)
+                } catch {
+                    completion(NSError(
+                        domain: "plugin.howitzergames.storekit2",
+                        code: 1001,
+                        userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
+                    ))
+                }
             }
+        } else {
+            completion(NSError(
+                domain: "plugin.howitzergames.storekit2",
+                code: 1003,
+                userInfo: [NSLocalizedDescriptionKey: "Unsupported OS version"]
+            ))
         }
     }
     
     @objc
-    @available(iOS 26.0, tvOS 26.0, *)
-    @available(macOS, unavailable)
+    //@available(iOS 26.0, tvOS 26.0, *)
     public static func presentMerchandisingAsync(
         _ kind: AppStoreMerchandisingKindWrapper,
         from controller: UIViewController,
@@ -104,26 +120,45 @@ public final class AppStoreWrapper : NSObject
     ) {
         Task { @MainActor in
             do {
-                let result = try await AppStore.presentMerchandising(kind.swiftValue, from: controller)
+                // Only call AppStore.presentMerchandising if the OS supports it
+                if #available(iOS 26.0, tvOS 26.0, *),
+                   let realKind = kind.swiftValue as? AppStoreMerchandisingKind {
+                    
+                    let result = try await AppStore.presentMerchandising(realKind, from: controller)
 
-                // Wrap Swift result in Obj-C wrapper
-                let wrapperResult = AppStoreMerchandisingKindPresentationResultWrapper(underlying: result)
-                completion(wrapperResult, nil)
+                    // Wrap Swift result in Obj-C wrapper
+                    let wrapperResult = AppStoreMerchandisingKindPresentationResultWrapper(underlying: result)
+                    completion(wrapperResult, nil)
+                } else {
+                    // Fallback for older OSes
+                    let wrapperResult = AppStoreMerchandisingKindPresentationResultWrapper(underlying: nil)
+                    let nsError = NSError(
+                        domain: "plugin.howitzergames.storekit2",
+                        code: 1002,
+                        userInfo: [NSLocalizedDescriptionKey: "AppStoreMerchandisingKind not available on this OS"]
+                    )
+                    completion(wrapperResult, nsError)
+                }
             } catch {
-                let wrapperResult = AppStoreMerchandisingKindPresentationResultWrapper(underlying: .dismissed)
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                // Handle runtime errors safely
+                let wrapperResult = AppStoreMerchandisingKindPresentationResultWrapper(underlying: nil)
+                let nsError = NSError(
+                    domain: "plugin.howitzergames.storekit2",
+                    code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
+                )
                 completion(wrapperResult, nsError)
             }
         }
     }
     
     @objc
-    @available(iOS 16.0, *)
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
+    //@available(iOS 16.0, *)@available(macOS, unavailable)@available(tvOS, unavailable)
     public static func requestReview(in scene: UIWindowScene) {
-        Task { @MainActor in
-            AppStore.requestReview(in: scene)
+        if #available(iOS 16.0, *) {
+            Task { @MainActor in
+                AppStore.requestReview(in: scene)
+            }
         }
     }
 }

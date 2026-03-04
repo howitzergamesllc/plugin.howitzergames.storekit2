@@ -10,80 +10,108 @@ import UIKit
 import StoreKit
 
 @objc(ExternalPurchaseCustomLink)
-@available(iOS 18.1, macOS 15.1, tvOS 18.1, *)
+//@available(iOS 18.1, macOS 15.1, tvOS 18.1, *)
 public final class ExternalPurchaseCustomLinkWrapper: NSObject {
 
     // MARK: - API
     public typealias BoolCompletion = (Bool) -> Void
     /// Check eligibility for external purchase links
-    @objc public static func isEligibleAsync(completion: @escaping BoolCompletion) {
-        Task {
-            let eligible = await ExternalPurchaseCustomLink.isEligible
-            completion(eligible)
+    @objc
+    public static func isEligibleAsync(completion: @escaping BoolCompletion) {
+        if #available(iOS 18.1, macOS 15.1, tvOS 18.1, *) {
+            Task {
+                let eligible = await ExternalPurchaseCustomLink.isEligible
+                completion(eligible)
+            }
+        } else {
+            // Fallback for older OSes
+            DispatchQueue.main.async {
+                completion(false)
+            }
         }
     }
 
-    /// Show notice to user
-    @objc public static func showNoticeAsync(
+    @objc
+    public static func showNoticeAsync(
         type: ExternalPurchaseCustomLinkNoticeTypeWrapper,
         completion: @escaping (ExternalPurchaseCustomLinkNoticeResultWrapper?, NSError?) -> Void
     ) {
-        let swiftType: ExternalPurchaseCustomLink.NoticeType =
-            (type.rawValue == 0) ? .withinApp : .browser
+        if #available(iOS 18.1, macOS 15.1, tvOS 18.1, *) {
+            let swiftType: ExternalPurchaseCustomLink.NoticeType =
+                (type.rawValue == 0) ? .withinApp : .browser
 
-        Task {
-            do {
-                let result = try await ExternalPurchaseCustomLink.showNotice(type: swiftType)
-                completion(ExternalPurchaseCustomLinkNoticeResultWrapper(swiftResult: result), nil)
-            } catch let error as StoreKitError {
-                let wrappederror = StoreKitErrorWrapper(swiftError: error)
-                let nserror = NSError(domain: "maui.storekit2.apple",
-                                      code: wrappederror.code.rawValue,
-                                      userInfo: [
-                                        NSLocalizedDescriptionKey: "StoreKitError",
-                                        "ErrorCase": String(describing: wrappederror.code),
-                                        "ErrorCode": wrappederror.code,
-                                        "ErrorReason": String(describing: wrappederror.failureReason),
-                                        "RecoverySuggestion":String(describing: wrappederror.recoverySuggestion),
-                                        "IsVerified": false
-                                      ])
-                completion(nil, nserror)
-            } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
-                completion(nil, nsError)
+            Task { @MainActor in
+                do {
+                    let result = try await ExternalPurchaseCustomLink.showNotice(type: swiftType)
+                    completion(ExternalPurchaseCustomLinkNoticeResultWrapper(swiftResult: result), nil)
+                } catch let error as StoreKitError {
+                    let wrappedError = StoreKitErrorWrapper(swiftError: error)
+                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                                          code: wrappedError.code.rawValue,
+                                          userInfo: [
+                                            NSLocalizedDescriptionKey: "StoreKitError",
+                                            "ErrorCase": String(describing: wrappedError.code),
+                                            "ErrorCode": wrappedError.code,
+                                            "ErrorReason": String(describing: wrappedError.failureReason),
+                                            "RecoverySuggestion": String(describing: wrappedError.recoverySuggestion),
+                                            "IsVerified": false
+                                          ])
+                    completion(nil, nsError)
+                } catch {
+                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                                          code: 1001,
+                                          userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                    completion(nil, nsError)
+                }
             }
+        } else {
+            // Runtime fallback
+            let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                                  code: 1003,
+                                  userInfo: [NSLocalizedDescriptionKey: "ExternalPurchaseCustomLink is not available on this OS version"])
+            completion(nil, nsError)
         }
     }
 
-    /// Retrieve token
-    @objc public static func getTokenAsync(
+    @objc
+    public static func getTokenAsync(
         for tokenType: String,
         completion: @escaping (ExternalPurchaseCustomLinkTokenWrapper?, NSError?) -> Void
     ) {
-        Task {
-            do {
-                if let tok = try await ExternalPurchaseCustomLink.token(for: tokenType) {
-                    completion(ExternalPurchaseCustomLinkTokenWrapper(swiftToken: tok), nil)
-                } else {
-                    completion(nil, nil)
+        if #available(iOS 18.1, macOS 15.1, tvOS 18.1, *) {
+            Task {
+                do {
+                    if let token = try await ExternalPurchaseCustomLink.token(for: tokenType) {
+                        completion(ExternalPurchaseCustomLinkTokenWrapper(swiftToken: token), nil)
+                    } else {
+                        completion(nil, nil)
+                    }
+                } catch let error as StoreKitError {
+                    let wrappedError = StoreKitErrorWrapper(swiftError: error)
+                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                                          code: wrappedError.code.rawValue,
+                                          userInfo: [
+                                            NSLocalizedDescriptionKey: "StoreKitError",
+                                            "ErrorCase": String(describing: wrappedError.code),
+                                            "ErrorCode": wrappedError.code,
+                                            "ErrorReason": String(describing: wrappedError.failureReason),
+                                            "RecoverySuggestion": String(describing: wrappedError.recoverySuggestion),
+                                            "IsVerified": false
+                                          ])
+                    completion(nil, nsError)
+                } catch {
+                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                                          code: 1001,
+                                          userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                    completion(nil, nsError)
                 }
-            } catch let error as StoreKitError {
-                let wrappederror = StoreKitErrorWrapper(swiftError: error)
-                let nserror = NSError(domain: "maui.storekit2.apple",
-                                      code: wrappederror.code.rawValue,
-                                      userInfo: [
-                                        NSLocalizedDescriptionKey: "StoreKitError",
-                                        "ErrorCase": String(describing: wrappederror.code),
-                                        "ErrorCode": wrappederror.code,
-                                        "ErrorReason": String(describing: wrappederror.failureReason),
-                                        "RecoverySuggestion":String(describing: wrappederror.recoverySuggestion),
-                                        "IsVerified": false
-                                      ])
-                completion(nil, nserror)
-            } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
-                completion(nil, nsError)
             }
+        } else {
+            // Runtime fallback
+            let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                                  code: 1003,
+                                  userInfo: [NSLocalizedDescriptionKey: "ExternalPurchaseCustomLink is not available on this OS version"])
+            completion(nil, nsError)
         }
     }
 }

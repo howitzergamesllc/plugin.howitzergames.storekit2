@@ -11,77 +11,90 @@ import StoreKit
 
 // MARK: - PaymentMethodBindingWrapper
 @objc(PaymentMethodBinding)
-@available(iOS 16.4, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
+//@available(iOS 16.4, *)@available(macOS, unavailable)@available(tvOS, unavailable)
 public final class PaymentMethodBindingWrapper: NSObject {
 
-    private let binding: PaymentMethodBinding
+    private let binding: Any?
 
-    // MARK: - Init
-    private init(binding: PaymentMethodBinding) {
+    private init(binding: Any?) {
         self.binding = binding
     }
     
-    // Synchronous factory method for C# compatibility
-    @objc public static func createAsync(id: String, completion: @escaping (PaymentMethodBindingWrapper?, NSError?) -> Void) {
-        Task {
-            do {
-                // Asynchronously create the PaymentMethodBinding
-                let binding = try await PaymentMethodBinding(id: id)
-                
-                // Wrap and return the result
-                let wrapper = PaymentMethodBindingWrapper(binding: binding)
-                completion(wrapper, nil)  // No error
-            } catch let error as PaymentMethodBinding.PaymentMethodBindingError {
-                let wrappederror = PaymentMethodBindingErrorWrapper(swiftError: error)
-                // If an error occurs, wrap it and pass it to the completion
-                let nsError = NSError(
-                    domain: "maui.storekit2.apple",
-                    code: wrappederror.code.rawValue,
-                    userInfo: [
-                        NSLocalizedDescriptionKey: "BindingError",
-                        "ErrorCase": String(describing: wrappederror.code),
-                        "ErrorCode": wrappederror.code,
-                        "ErrorReason": String(describing: wrappederror.failureReason),
-                        "RecoverySuggestion":String(describing: wrappederror.recoverySuggestion),
-                        "IsVerified": false
-                    ])
-                completion(nil, nsError)
-            } catch {
-                // Catch any unexpected errors and pass them as unknown
-                let nsError = NSError(
-                domain: "maui.storekit2.apple",
-                code: -1, // Custom error code for unknown errors
-                userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
-                )
-                completion(nil, nsError)
+    @objc public static func createAsync(
+        id: String,
+        completion: @escaping (PaymentMethodBindingWrapper?, NSError?) -> Void
+    ) {
+        if #available(iOS 16.4, *) {
+            Task {
+                do {
+                    let binding = try await PaymentMethodBinding(id: id)
+                    completion(PaymentMethodBindingWrapper(binding: binding), nil)
+                } catch let error as PaymentMethodBinding.PaymentMethodBindingError {
+                    let wrappederror = PaymentMethodBindingErrorWrapper(swiftError: error)
+                    let nsError = NSError(
+                        domain: "plugin.howitzergames.storekit2",
+                        code: wrappederror?.code.rawValue ?? -1,
+                        userInfo: [
+                            NSLocalizedDescriptionKey: "BindingError",
+                            "ErrorCase": String(describing: wrappederror?.code),
+                            "ErrorCode": wrappederror?.code ?? -1,
+                            "ErrorReason": String(describing: wrappederror?.failureReason),
+                            "RecoverySuggestion": String(describing: wrappederror?.recoverySuggestion),
+                            "IsVerified": false
+                        ]
+                    )
+                    completion(nil, nsError)
+                } catch {
+                    let nsError = NSError(
+                        domain: "plugin.howitzergames.storekit2",
+                        code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
+                    )
+                    completion(nil, nsError)
+                }
             }
+        } else {
+            // Fallback for older OS versions
+            let error = NSError(
+                domain: "plugin.howitzergames.storekit2",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "PaymentMethodBinding is not available on this OS version."]
+            )
+            completion(nil, error)
         }
     }
 
-    // MARK: - Bind
-    @objc
-    public func bindAsync(
+    @objc public func bindAsync(
         completion: @escaping (PaymentMethodBindingErrorWrapper?) -> Void
     ) {
-        Task {
-            do {
-                try await binding.bind()
-                completion(nil)
-            } catch let err as PaymentMethodBinding.PaymentMethodBindingError {
-                completion(PaymentMethodBindingErrorWrapper(swiftError: err))
-            } catch {
-                completion(PaymentMethodBindingErrorWrapper(
-                    code: .unknown,
-                    description: error.localizedDescription
-                ))
+        if #available(iOS 16.4, *), let binding = binding as? PaymentMethodBinding {
+            Task {
+                do {
+                    try await binding.bind()
+                    completion(nil)
+                } catch let err as PaymentMethodBinding.PaymentMethodBindingError {
+                    completion(PaymentMethodBindingErrorWrapper(swiftError: err))
+                } catch {
+                    completion(PaymentMethodBindingErrorWrapper(
+                        code: .unknown,
+                        description: error.localizedDescription
+                    ))
+                }
             }
+        } else {
+            // Older OS versions cannot bind
+            completion(PaymentMethodBindingErrorWrapper(
+                code: .unknown,
+                description: "PaymentMethodBinding.bind() is not supported on this OS version."
+            ))
         }
     }
 
-    // MARK: - Expose ID
-    @objc public var pinningID: String {
-        binding.id
+    @objc public var pinningID: String? {
+        if #available(iOS 16.4, *), let binding = binding as? PaymentMethodBinding {
+            return binding.id
+        } else {
+            return nil
+        }
     }
 }

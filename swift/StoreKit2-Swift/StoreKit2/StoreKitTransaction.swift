@@ -2,8 +2,7 @@
 //  StoreKitTransaction.swift
 //  StoreKit2
 //
-//
-//  Created by Ian Howard on 11/17/2025.
+//  Created by Przemysław Raciborski on 29/09/2023.
 //
 
 import Foundation

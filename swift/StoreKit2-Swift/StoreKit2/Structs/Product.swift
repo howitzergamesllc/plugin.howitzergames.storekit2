@@ -77,7 +77,7 @@ public final class ProductWrapper: NSObject {
                 completion(ProductPurchaseResultWrapper(result), nil)
             } catch let purchaseError as Product.PurchaseError {
                 let wrappederror = ProductPurchaseErrorWrapper(swiftError: purchaseError)
-                let nsError = NSError(domain: "maui.storekit2.apple",
+                let nsError = NSError(domain: "plugin.howitzergames.storekit2",
                                       code: wrappederror.code.rawValue,
                                       userInfo: [
                                           NSLocalizedDescriptionKey: "PurchaseError",
@@ -90,7 +90,7 @@ public final class ProductWrapper: NSObject {
                 completion(nil, nsError)
             } catch let error as StoreKitError {
                 let wrappederror = StoreKitErrorWrapper(swiftError: error)
-                let nserror = NSError(domain: "maui.storekit2.apple",
+                let nserror = NSError(domain: "plugin.howitzergames.storekit2",
                                       code: wrappederror.code.rawValue,
                                       userInfo: [
                                         NSLocalizedDescriptionKey: "StoreKitError",
@@ -103,7 +103,7 @@ public final class ProductWrapper: NSObject {
                 completion(nil, nserror)
             } catch let error{
                 // Catch any other errors and wrap them in an NSError
-                let nsError = NSError(domain: "maui.storekit2.apple",
+                let nsError = NSError(domain: "plugin.howitzergames.storekit2",
                                       code: 1001, // Custom code for unknown errors
                                       userInfo: [
                                         NSLocalizedDescriptionKey: error.localizedDescription
@@ -114,104 +114,120 @@ public final class ProductWrapper: NSObject {
     }
     
     @objc(purchaseInSceneAsync:options:completion:)
-    @available(iOS 17.0, tvOS 17.0, *)
-    @available(macOS, unavailable)
     public func purchaseAsync(
         confirmIn scene: UIScene,
         options: [ProductPurchaseOptionsWrapper],
         completion: @escaping (ProductPurchaseResultWrapper?, NSError?) -> Void
     ) {
-        Task { @MainActor in
-            let optionSet = Set(options.map { $0.swiftOption })
-            
-            do {
-                let result = try await product.purchase(confirmIn: scene, options: optionSet)
-                completion(ProductPurchaseResultWrapper(result), nil)
-            } catch let purchaseError as Product.PurchaseError {
-                let wrappederror = ProductPurchaseErrorWrapper(swiftError: purchaseError)
-                let nsError = NSError(domain: "maui.storekit2.apple",
-                                      code: wrappederror.code.rawValue,
-                                      userInfo: [
-                                          NSLocalizedDescriptionKey: "PurchaseError",
-                                          "ErrorCase": String(describing: wrappederror.code),
-                                          "ErrorCode": wrappederror.code,
-                                          "ErrorReason": String(describing: wrappederror.failureReason),
-                                          "RecoverySuggestion":String(describing: wrappederror.recoverySuggestion),
-                                          "IsVerified": false
-                                      ])
-                completion(nil, nsError)
-            } catch let error as StoreKitError {
-                let wrappederror = StoreKitErrorWrapper(swiftError: error)
-                let nserror = NSError(domain: "maui.storekit2.apple",
-                                      code: wrappederror.code.rawValue,
-                                      userInfo: [
-                                        NSLocalizedDescriptionKey: "StoreKitError",
-                                        "ErrorCase": String(describing: wrappederror.code),
-                                        "ErrorCode": wrappederror.code,
-                                        "ErrorReason": String(describing: wrappederror.failureReason),
-                                        "RecoverySuggestion":String(describing: wrappederror.recoverySuggestion),
-                                        "IsVerified": false
-                                      ])
-                completion(nil, nserror)
-            } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple",
-                                      code: 1001,
-                                      userInfo: [
-                                        NSLocalizedDescriptionKey: error.localizedDescription
-                                      ])
-                completion(nil, nsError)
+        if #available(iOS 17.0, tvOS 17.0, *) {
+            Task { @MainActor in
+                let optionSet = Set(options.map { $0.swiftOption })
+
+                do {
+                    let result = try await product.purchase(confirmIn: scene, options: optionSet)
+                    completion(ProductPurchaseResultWrapper(result), nil)
+                } catch let purchaseError as Product.PurchaseError {
+                    let wrappederror = ProductPurchaseErrorWrapper(swiftError: purchaseError)
+                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                                          code: wrappederror.code.rawValue,
+                                          userInfo: [
+                                              NSLocalizedDescriptionKey: "PurchaseError",
+                                              "ErrorCase": String(describing: wrappederror.code),
+                                              "ErrorCode": wrappederror.code,
+                                              "ErrorReason": String(describing: wrappederror.failureReason),
+                                              "RecoverySuggestion": String(describing: wrappederror.recoverySuggestion),
+                                              "IsVerified": false
+                                          ])
+                    completion(nil, nsError)
+                } catch let error as StoreKitError {
+                    let wrappederror = StoreKitErrorWrapper(swiftError: error)
+                    let nserror = NSError(domain: "plugin.howitzergames.storekit2",
+                                          code: wrappederror.code.rawValue,
+                                          userInfo: [
+                                            NSLocalizedDescriptionKey: "StoreKitError",
+                                            "ErrorCase": String(describing: wrappederror.code),
+                                            "ErrorCode": wrappederror.code,
+                                            "ErrorReason": String(describing: wrappederror.failureReason),
+                                            "RecoverySuggestion": String(describing: wrappederror.recoverySuggestion),
+                                            "IsVerified": false
+                                          ])
+                    completion(nil, nserror)
+                } catch {
+                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                                          code: 1001,
+                                          userInfo: [
+                                            NSLocalizedDescriptionKey: error.localizedDescription
+                                          ])
+                    completion(nil, nsError)
+                }
             }
+        } else {
+            // Runtime fallback for older OS
+            let nsError = NSError(
+                domain: "plugin.howitzergames.storekit2",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "purchaseAsync is not available on this OS version."]
+            )
+            completion(nil, nsError)
         }
     }
     
     @objc(purchaseInViewControllerAsync:options:completion:)
-    @available(iOS 18.2, tvOS 18.2, *)
-    @available(macOS, unavailable)
     public func purchaseAsync(
         confirmIn viewController: UIViewController,
         options: [ProductPurchaseOptionsWrapper],
         completion: @escaping (ProductPurchaseResultWrapper?, NSError?) -> Void
     ) {
-        Task { @MainActor in
-            let optionSet = Set(options.map { $0.swiftOption })
-            
-            do {
-                let result = try await product.purchase(confirmIn: viewController, options: optionSet)
-                completion(ProductPurchaseResultWrapper(result), nil)
-            } catch let purchaseError as Product.PurchaseError {
-                let wrappederror = ProductPurchaseErrorWrapper(swiftError: purchaseError)
-                let nsError = NSError(domain: "maui.storekit2.apple",
-                                      code: wrappederror.code.rawValue,
-                                      userInfo: [
-                                          NSLocalizedDescriptionKey: "PurchaseError",
-                                          "ErrorCase": String(describing: wrappederror.code),
-                                          "ErrorCode": wrappederror.code,
-                                          "ErrorReason": String(describing: wrappederror.failureReason),
-                                          "RecoverySuggestion":String(describing: wrappederror.recoverySuggestion),
-                                          "IsVerified": false
-                                      ])
-                completion(nil, nsError)
-            } catch let error as StoreKitError {
-                let wrappederror = StoreKitErrorWrapper(swiftError: error)
-                let nserror = NSError(domain: "maui.storekit2.apple",
-                                      code: wrappederror.code.rawValue,
-                                      userInfo: [
-                                        NSLocalizedDescriptionKey: "StoreKitError",
-                                        "ErrorCase": String(describing: wrappederror.code),
-                                        "ErrorCode": wrappederror.code,
-                                        "ErrorReason": String(describing: wrappederror.failureReason),
-                                        "RecoverySuggestion":String(describing: wrappederror.recoverySuggestion),
-                                        "IsVerified": false
-                                      ])
-                completion(nil, nserror)
-            } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple",
-                                      code: 1001,
-                                      userInfo: [
-                                        NSLocalizedDescriptionKey: error.localizedDescription
-                                      ])
-                completion(nil, nsError)
+        if #available(iOS 18.2, tvOS 18.2, *) {
+            Task { @MainActor in
+                let optionSet = Set(options.map { $0.swiftOption })
+                
+                do {
+                    let result = try await product.purchase(confirmIn: viewController, options: optionSet)
+                    completion(ProductPurchaseResultWrapper(result), nil)
+                } catch let purchaseError as Product.PurchaseError {
+                    let wrappederror = ProductPurchaseErrorWrapper(swiftError: purchaseError)
+                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                                          code: wrappederror.code.rawValue,
+                                          userInfo: [
+                                              NSLocalizedDescriptionKey: "PurchaseError",
+                                              "ErrorCase": String(describing: wrappederror.code),
+                                              "ErrorCode": wrappederror.code,
+                                              "ErrorReason": String(describing: wrappederror.failureReason),
+                                              "RecoverySuggestion": String(describing: wrappederror.recoverySuggestion),
+                                              "IsVerified": false
+                                          ])
+                    completion(nil, nsError)
+                } catch let error as StoreKitError {
+                    let wrappederror = StoreKitErrorWrapper(swiftError: error)
+                    let nserror = NSError(domain: "plugin.howitzergames.storekit2",
+                                          code: wrappederror.code.rawValue,
+                                          userInfo: [
+                                            NSLocalizedDescriptionKey: "StoreKitError",
+                                            "ErrorCase": String(describing: wrappederror.code),
+                                            "ErrorCode": wrappederror.code,
+                                            "ErrorReason": String(describing: wrappederror.failureReason),
+                                            "RecoverySuggestion": String(describing: wrappederror.recoverySuggestion),
+                                            "IsVerified": false
+                                          ])
+                    completion(nil, nserror)
+                } catch {
+                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                                          code: 1001,
+                                          userInfo: [
+                                            NSLocalizedDescriptionKey: error.localizedDescription
+                                          ])
+                    completion(nil, nsError)
+                }
             }
+        } else {
+            // Runtime fallback for OS versions <18.2
+            let nsError = NSError(
+                domain: "plugin.howitzergames.storekit2",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "purchaseAsync(confirmIn:viewController:) is not available on this OS version."]
+            )
+            completion(nil, nsError)
         }
     }
     
@@ -231,7 +247,7 @@ public final class ProductWrapper: NSObject {
                 completion(wrapped, nil)
             } catch let error as StoreKitError {
                 let wrappederror = StoreKitErrorWrapper(swiftError: error)
-                let nserror = NSError(domain: "maui.storekit2.apple",
+                let nserror = NSError(domain: "plugin.howitzergames.storekit2",
                                       code: wrappederror.code.rawValue,
                                       userInfo: [
                                         NSLocalizedDescriptionKey: "StoreKitError",
@@ -279,7 +295,7 @@ public final class ProductWrapper: NSObject {
                 completion(wrapped, nil)
             } else {
                 let nsError = NSError(
-                    domain: "maui.storekit2.apple",
+                    domain: "plugin.howitzergames.storekit2",
                     code: wrapped.error.rawValue,
                     userInfo: [
                         NSLocalizedDescriptionKey: "VerificationError",
@@ -294,37 +310,50 @@ public final class ProductWrapper: NSObject {
         }
     }
 
-    /// Fetches all current entitlements wrapped in TransactionVerificationResultWrappers.
-    /// Returns a single NSError if any of the transactions are unverified.
     @objc(currentEntitlementsWithCompletionAsync:)
-    @available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
-    public func currentEntitlementsAsync(completion: @escaping ([TransactionVerificationResultWrapper], NSError?) -> Void) {
-        Task {
-            var wrappedResults: [TransactionVerificationResultWrapper] = []
-            var unverifiedCount = 0
-            var lastError: NSError?
+    public func currentEntitlementsAsync(
+        completion: @escaping ([TransactionVerificationResultWrapper], NSError?) -> Void
+    ) {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) {
+            Task {
+                var wrappedResults: [TransactionVerificationResultWrapper] = []
+                var unverifiedCount = 0
+                var lastError: NSError?
 
-            for await verificationResult in product.currentEntitlements {
-                let wrapped = TransactionVerificationResultWrapper(verification: verificationResult)
-                wrappedResults.append(wrapped)
+                // Iterate over the async sequence of current entitlements
+                for await verificationResult in product.currentEntitlements {
+                    let wrapped = TransactionVerificationResultWrapper(verification: verificationResult)
+                    wrappedResults.append(wrapped)
 
-                if !wrapped.isVerified {
-                    unverifiedCount += 1
-                    lastError = NSError(
-                        domain: "maui.storekit2.apple",
-                        code: wrapped.error.rawValue,
-                        userInfo: [
-                            NSLocalizedDescriptionKey: "VerificationError",
-                            "VerificationCase": String(describing: wrapped.error),
-                            "VerificationCode": wrapped.error.rawValue,
-                            "IsVerified": false,
-                            "TransactionID": wrapped.transaction.id,
-                            "UnverifiedCount": unverifiedCount
-                        ]
-                    )
+                    if !wrapped.isVerified {
+                        unverifiedCount += 1
+                        lastError = NSError(
+                            domain: "plugin.howitzergames.storekit2",
+                            code: wrapped.error.rawValue,
+                            userInfo: [
+                                NSLocalizedDescriptionKey: "VerificationError",
+                                "VerificationCase": String(describing: wrapped.error),
+                                "VerificationCode": wrapped.error.rawValue,
+                                "IsVerified": false,
+                                "TransactionID": wrapped.transaction.id,
+                                "UnverifiedCount": unverifiedCount
+                            ]
+                        )
+                    }
                 }
+
+                completion(wrappedResults, lastError)
             }
-            completion(wrappedResults, lastError)
+        } else {
+            // Runtime fallback for older OS versions
+            let nsError = NSError(
+                domain: "plugin.howitzergames.storekit2",
+                code: -1,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "currentEntitlementsAsync is not available on this OS version."
+                ]
+            )
+            completion([], nsError)
         }
     }
 }

@@ -68,10 +68,12 @@ public final class TransactionWrapper: NSObject {
         swiftValue.isUpgraded
     }
     
-    @available(iOS 17.2, macOS 14.2, tvOS 17.2, *)
     @objc public var offer: TransactionOfferWrapper? {
-        guard let o = swiftValue.offer else { return nil }
-        return TransactionOfferWrapper(swiftValue: o)
+        if #available(iOS 17.2, macOS 14.2, tvOS 17.2, *) {
+            return TransactionOfferWrapper(swiftOffer: swiftValue)
+        } else {
+            return nil
+        }
     }
     
     @objc
@@ -134,27 +136,42 @@ public final class TransactionWrapper: NSObject {
         swiftValue.appAccountToken
     }
     
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
-    @objc public var environment: AppStoreEnvironmentWrapper {
-        AppStoreEnvironmentWrapper(swiftEnvironment: swiftValue.environment)
+    @objc
+    //@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+    public var environment: AppStoreEnvironmentWrapper? {
+        if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) {
+            return AppStoreEnvironmentWrapper(swiftEnvironment: swiftValue.environment)
+        } else {
+            return nil
+        }
     }
     
     @objc public var environmentStringRepresentation: String {
         swiftValue.environmentStringRepresentation
     }
     
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
-    @objc public var reason: TransactionReasonWrapper {
-        TransactionReasonWrapper(swiftReason: swiftValue.reason)
+    @objc
+    //@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
+    public var reason: TransactionReasonWrapper? {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return TransactionReasonWrapper(swiftReason: swiftValue.reason)
+        } else {
+            return nil
+        }
     }
     
     @objc public var reasonStringRepresentation: String {
         swiftValue.reasonStringRepresentation
     }
     
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
-    @objc public var storefront: StoreFrontWrapper {
-        StoreFrontWrapper(swiftValue.storefront)
+    @objc
+    //#available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
+    public var storefront: StoreFrontWrapper? {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return StoreFrontWrapper(swiftValue.storefront)
+        } else {
+            return nil
+        }
     }
     
     @objc public var storefrontCountryCode: String {
@@ -167,12 +184,16 @@ public final class TransactionWrapper: NSObject {
     }
     
     @objc
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+    //@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
     public var currency: CurrencyWrapper? {
-        guard let swiftCurrency = Locale.current.currency else {
-            return nil // Return nil if there's no currency (fallback to USD or other default)
+        if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) {
+            guard let swiftCurrency = Locale.current.currency else {
+                return nil
+            }
+            return CurrencyWrapper(swiftValue: swiftCurrency)
+        } else {
+            return nil
         }
-        return CurrencyWrapper(swiftValue: swiftCurrency)
     }
     
     @objc public var currencyCode: String? {
@@ -200,10 +221,12 @@ public final class TransactionWrapper: NSObject {
     }
     
     @objc
-    @available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+    //@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
     public var advancedCommerceInfo: TransactionAdvancedCommerceInfoWrapper? {
-        if let info = swiftValue.advancedCommerceInfo {
-            return TransactionAdvancedCommerceInfoWrapper(swiftValue: info)
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) {
+            if let info = swiftValue.advancedCommerceInfo {
+                return TransactionAdvancedCommerceInfoWrapper(swiftValue: info)
+            }
         }
         return nil
     }
@@ -328,34 +351,43 @@ public final class TransactionWrapper: NSObject {
     }
     
     @objc(allTransactionsAsyncWithHandler:productID:completion:)
-    @available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+    //@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
     public static func allTransactionsAsync(
         forProductID productID: String,
         transactionHandler: @escaping (TransactionVerificationResultWrapper) -> Void,
         completion: @escaping () -> Void
     ) {
-        Task {
-            for await result in Transaction.all(for: productID) {
-                let wrapped = TransactionVerificationResultWrapper(verification: result
-                )
-                transactionHandler(wrapped)
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) {
+            Task {
+                for await result in Transaction.all(for: productID) {
+                    let wrapped = TransactionVerificationResultWrapper(verification: result)
+                    transactionHandler(wrapped)
+                }
+                completion()
             }
+        } else {
+            // Older OS versions: just call completion immediately
             completion()
         }
     }
     
     @objc(currentEntitlementsAsyncWithHandler:productID:completion:)
-    @available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+    //@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
     public static func currentEntitlementsAsync(
         forProductID productID: String,
         transactionHandler: @escaping (TransactionVerificationResultWrapper) -> Void,
         completion: @escaping () -> Void
     ) {
-        Task {
-            for await result in Transaction.currentEntitlements(for: productID) {
-                let wrapped = TransactionVerificationResultWrapper(verification: result)
-                transactionHandler(wrapped)
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) {
+            Task {
+                for await result in Transaction.currentEntitlements(for: productID) {
+                    let wrapped = TransactionVerificationResultWrapper(verification: result)
+                    transactionHandler(wrapped)
+                }
+                completion()
             }
+        } else {
+            // Older OS versions: no entitlements, just complete immediately
             completion()
         }
     }
@@ -382,7 +414,7 @@ public final class TransactionWrapper: NSObject {
             } catch let error as Transaction.RefundRequestError {
                 let wrappederror = RefundRequestErrorWrapper(swiftError: error)
                 wrappedStatus = .failed
-                wrappedError = NSError(domain: "maui.storekit2.apple", code: wrappederror.code.rawValue,                                      userInfo: [
+                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: wrappederror.code.rawValue,                                      userInfo: [
                     NSLocalizedDescriptionKey: "RefundRequestError",
                     "ErrorCase": String(describing: wrappederror.code),
                     "ErrorCode": wrappederror.code,
@@ -393,7 +425,7 @@ public final class TransactionWrapper: NSObject {
             } catch let error as StoreKitError {
                 let wrappederror = StoreKitErrorWrapper(swiftError: error)
                 wrappedStatus = .failed
-                wrappedError = NSError(domain: "maui.storekit2.apple", code: wrappederror.code.rawValue,                                      userInfo: [
+                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: wrappederror.code.rawValue,                                      userInfo: [
                     NSLocalizedDescriptionKey: "StoreKitError",
                     "ErrorCase": String(describing: wrappederror.code),
                     "ErrorCode": wrappederror.code,
@@ -404,7 +436,7 @@ public final class TransactionWrapper: NSObject {
             } catch {
                 wrappedStatus = .failed
                 // Create a new generic NSError for any other Swift error
-                wrappedError = NSError(domain: "maui.storekit2.apple", code: -1, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: -1, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
             }
             
             completion(wrappedStatus, wrappedError)
@@ -437,7 +469,7 @@ public final class TransactionWrapper: NSObject {
             } catch let error as Transaction.RefundRequestError {
                 let wrappederror = RefundRequestErrorWrapper(swiftError: error)
                 wrappedStatus = .failed
-                wrappedError = NSError(domain: "maui.storekit2.apple", code: wrappederror.code.rawValue, userInfo: [
+                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: wrappederror.code.rawValue, userInfo: [
                     NSLocalizedDescriptionKey: "RefundRequestError",
                     "ErrorCase": String(describing: wrappederror.code),
                     "ErrorCode": wrappederror.code,
@@ -448,7 +480,7 @@ public final class TransactionWrapper: NSObject {
             } catch let error as StoreKitError {
                 let wrappederror = StoreKitErrorWrapper(swiftError: error)
                 wrappedStatus = .failed
-                wrappedError = NSError(domain: "maui.storekit2.apple", code: wrappederror.code.rawValue,                                      userInfo: [
+                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: wrappederror.code.rawValue,                                      userInfo: [
                     NSLocalizedDescriptionKey: "StoreKitError",
                     "ErrorCase": String(describing: wrappederror.code),
                     "ErrorCode": wrappederror.code,
@@ -458,7 +490,7 @@ public final class TransactionWrapper: NSObject {
                 ])
             } catch {
                 wrappedStatus = .failed
-                wrappedError = NSError(domain: "maui.storekit2.apple", code: -1, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: -1, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
             }
 
             // Call completion

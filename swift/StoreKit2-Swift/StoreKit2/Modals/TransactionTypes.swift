@@ -11,26 +11,41 @@ import StoreKit
 
 // MARK: - TransactionReason
 @objc(TransactionReason)
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
+//@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
 public final class TransactionReasonWrapper: NSObject {
 
-    // Private Swift Transaction.Reason
-    private let reason: Transaction.Reason
-
-    // Expose rawValue to ObjC
-    @objc public var rawValue: String {
-        reason.rawValue
-    }
+    @objc public let rawValue: String
 
     // Internal initializer for Swift only
-    init(swiftReason: Transaction.Reason) {
-        self.reason = swiftReason
+    init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+    
+    public convenience init?(swiftReason: Any?) {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *),
+           let reason = swiftReason as? Transaction.Reason {
+            self.init(rawValue: reason.rawValue)
+        } else {
+            return nil
+        }
     }
 
-    // Convenience static constants for ObjC
-    @objc public static let purchase = TransactionReasonWrapper(swiftReason: .purchase)
-    @objc public static let renewal = TransactionReasonWrapper(swiftReason: .renewal)
-    
+    @objc public static var purchase: TransactionReasonWrapper? {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return TransactionReasonWrapper(swiftReason: Transaction.Reason.purchase)!
+        } else {
+            return nil
+        }
+    }
+
+    @objc public static var renewal: TransactionReasonWrapper? {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) {
+            return TransactionReasonWrapper(swiftReason: Transaction.Reason.renewal)!
+        } else {
+            return nil
+        }
+    }
+
     @objc public func isEqualToReason(_ other: TransactionReasonWrapper?) -> Bool {
         guard let other = other else { return false }
         return self.rawValue == other.rawValue
@@ -85,78 +100,98 @@ public final class TransactionOwnershipTypeWrapper: NSObject {
 
 // MARK: - TransactionOffer
 @objc(TransactionOffer)
-@available(iOS 17.2, macOS 14.2, tvOS 17.2, *)
+//@available(iOS 17.2, macOS 14.2, tvOS 17.2, *)
 public final class TransactionOfferWrapper: NSObject {
+    
+    @objc public let id: String?
+    @objc public let type: TransactionOfferTypeWrapper
+    @objc public let paymentMode: TransactionOfferPaymentModeWrapper?
+    @objc public let period: ProductSubscriptionPeriodWrapper?
 
-    private let swiftValue: Transaction.Offer
-
-    @objc public var id: String? {
-        swiftValue.id
+    // Private initializer for internal bridging
+    private init(
+        id: String?,
+        type: TransactionOfferTypeWrapper,
+        paymentMode: TransactionOfferPaymentModeWrapper?,
+        period: ProductSubscriptionPeriodWrapper?
+    ) {
+        self.id = id
+        self.type = type
+        self.paymentMode = paymentMode
+        self.period = period
+        super.init()
     }
 
-    @objc
-    public var type: TransactionOfferTypeWrapper {
-        switch swiftValue.type {
-        case .introductory:
-            return .introductory
-        case .promotional:
-            return .promotional
-        case .code:
-            return .code
-        case .winBack:
-            return .winBack
-        default:
-            return .unknown
+    /// Runtime-safe initializer from Swift `Transaction.Offer`
+    public convenience init?(swiftOffer: Any?) {
+        if #available(iOS 17.2, macOS 14.2, tvOS 17.2, *),
+           let offer = swiftOffer as? Transaction.Offer {
+
+            let typeWrapper: TransactionOfferTypeWrapper
+            switch offer.type {
+            case .introductory:
+                typeWrapper = .introductory
+            case .promotional:
+                typeWrapper = .promotional
+            case .code:
+                typeWrapper = .code
+            case .winBack:
+                typeWrapper = .winBack
+            default:
+                typeWrapper = .unknown
+            }
+
+            let paymentModeWrapper = offer.paymentMode.flatMap { TransactionOfferPaymentModeWrapper(swiftValue: $0) }
+            let periodWrapper: ProductSubscriptionPeriodWrapper?
+            if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) {
+                periodWrapper = offer.period.map { ProductSubscriptionPeriodWrapper(swiftValue: $0) }
+            } else {
+                periodWrapper = nil
+            }
+
+            self.init(
+                id: offer.id,
+                type: typeWrapper,
+                paymentMode: paymentModeWrapper,
+                period: periodWrapper
+            )
+        } else {
+            return nil
         }
-    }
-
-    @objc public var paymentMode: TransactionOfferPaymentModeWrapper? {
-        if let pm = swiftValue.paymentMode {
-            return TransactionOfferPaymentModeWrapper(swiftValue: pm)
-        }
-        return nil
-    }
-
-    @available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
-    @objc public var period: ProductSubscriptionPeriodWrapper? {
-        if let p = swiftValue.period {
-            return ProductSubscriptionPeriodWrapper(swiftValue: p)
-        }
-        return nil
-    }
-
-    init(swiftValue: Transaction.Offer) {
-        self.swiftValue = swiftValue
     }
 }
 
 // MARK: - TransactionOffer.PaymentMode
 @objc(TransactionOfferPaymentMode)
-@available(iOS 17.2, macOS 14.2, tvOS 17.2, *)
+//@available(iOS 17.2, macOS 14.2, tvOS 17.2, *)
 public final class TransactionOfferPaymentModeWrapper: NSObject {
 
-    private let swiftValue: Transaction.Offer.PaymentMode
+    @objc public let rawValue: String
 
-    @objc public var rawValue: String {
-        swiftValue.rawValue
+    private init(rawValue: String) {
+        self.rawValue = rawValue
+        super.init()
+    }
+    
+    public convenience init?(swiftValue: Any?) {
+        if #available(iOS 17.2, macOS 14.2, tvOS 17.2, *),
+           let mode = swiftValue as? Transaction.Offer.PaymentMode {
+            self.init(rawValue: mode.rawValue)
+        } else {
+            return nil
+        }
     }
 
-    init(swiftValue: Transaction.Offer.PaymentMode) {
-        self.swiftValue = swiftValue
-    }
+    @objc public static let freeTrial = TransactionOfferPaymentModeWrapper(rawValue: "freeTrial")
+    @objc public static let payAsYouGo = TransactionOfferPaymentModeWrapper(rawValue: "payAsYouGo")
+    @objc public static let payUpFront = TransactionOfferPaymentModeWrapper(rawValue: "payUpFront")
 
-    @objc public static let freeTrial =
-        TransactionOfferPaymentModeWrapper(swiftValue: .freeTrial)
-
-    @objc public static let payAsYouGo =
-        TransactionOfferPaymentModeWrapper(swiftValue: .payAsYouGo)
-
-    @objc public static let payUpFront =
-        TransactionOfferPaymentModeWrapper(swiftValue: .payUpFront)
-
-    @available(iOS 17.2, macOS 14.2, tvOS 17.2, *)
     @objc public static var oneTime: TransactionOfferPaymentModeWrapper {
-        return TransactionOfferPaymentModeWrapper(swiftValue: .oneTime)
+        if #available(iOS 17.2, macOS 14.2, tvOS 17.2, *) {
+            return TransactionOfferPaymentModeWrapper(swiftValue: Transaction.Offer.PaymentMode.oneTime)!
+        } else {
+            return TransactionOfferPaymentModeWrapper(rawValue: "oneTime")
+        }
     }
 
     @objc public func isEqualToMode(_ other: TransactionOfferPaymentModeWrapper?) -> Bool {
@@ -167,143 +202,226 @@ public final class TransactionOfferPaymentModeWrapper: NSObject {
 
 // MARK: - Transaction.AdvancedCommerceInfo
 @objc(TransactionAdvancedCommerceInfo)
-@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
 public final class TransactionAdvancedCommerceInfoWrapper: NSObject {
-    private let swiftValue: Transaction.AdvancedCommerceInfo
     
-    public init(swiftValue: Transaction.AdvancedCommerceInfo) {
-        self.swiftValue = swiftValue
-    }
+    @objc public let requestReferenceID: String
+    @objc public let estimatedTax: NSDecimalNumber
+    @objc public let taxRate: NSDecimalNumber
+    @objc public let taxCode: String
+    @objc public let taxExclusivePrice: NSDecimalNumber
+    @objc public let infoDescription: String?
+    @objc public let displayName: String?
+    @objc public let period: ProductSubscriptionPeriodWrapper?
+    @objc public let items: [SubscriptionAdvancedCommerceItemWrapper]
     
-    @objc public var requestReferenceID: String {
-        swiftValue.requestReferenceID
-    }
-    
-    @objc public var estimatedTax: NSDecimalNumber {
-        swiftValue.estimatedTax as NSDecimalNumber
-    }
-    
-    @objc public var taxRate: NSDecimalNumber {
-        swiftValue.taxRate as NSDecimalNumber
-    }
-    
-    @objc public var taxCode: String {
-        swiftValue.taxCode
-    }
-    
-    @objc public var taxExclusivePrice: NSDecimalNumber {
-        swiftValue.taxExclusivePrice as NSDecimalNumber
-    }
-    
-    @objc public var infoDescription: String? {
-        swiftValue.description
-    }
-    
-    @objc public var displayName: String? {
-        swiftValue.displayName
-    }
-    
-    @objc public var period: ProductSubscriptionPeriodWrapper? {
-        swiftValue.period.map { ProductSubscriptionPeriodWrapper(swiftValue: $0) }
-    }
-    
-    @objc public var items: NSArray {
-        return swiftValue.items.map { TransactionAdvancedCommerceInfoItemWrapper(swiftValue: $0) } as NSArray
+    public init?(swiftValue: Any?) {
+        // Only unwrap if OS is available
+        guard #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+              let info = swiftValue as? Transaction.AdvancedCommerceInfo else {
+            return nil
+        }
+        
+        self.requestReferenceID = info.requestReferenceID
+        self.estimatedTax = info.estimatedTax as NSDecimalNumber
+        self.taxRate = info.taxRate as NSDecimalNumber
+        self.taxCode = info.taxCode
+        self.taxExclusivePrice = info.taxExclusivePrice as NSDecimalNumber
+        self.infoDescription = info.description
+        self.displayName = info.displayName
+        self.period = info.period.map { ProductSubscriptionPeriodWrapper(swiftValue: $0) }
+        self.items = info.items.compactMap { SubscriptionAdvancedCommerceItemWrapper(swiftItem: $0) }
+        
+        super.init()
     }
 }
 
 // MARK: - Transaction.AdvancedCommerceInfo.Item
 @objc(TransactionAdvancedCommerceInfoItem)
-@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
 public final class TransactionAdvancedCommerceInfoItemWrapper: NSObject {
-    private let swiftValue: Transaction.AdvancedCommerceInfo.Item
+    @objc public let details: TransactionAdvancedCommerceInfoItemDetailsWrapper?
+    @objc public let refunds: NSArray?
+    @objc public let revocationDate: Date?
     
-    public init(swiftValue: Transaction.AdvancedCommerceInfo.Item) {
-        self.swiftValue = swiftValue
-    }
-    
-    @objc public var details: TransactionAdvancedCommerceInfoItemDetailsWrapper {
-        TransactionAdvancedCommerceInfoItemDetailsWrapper(swiftValue: swiftValue.details)
-    }
-    
-    @objc public var refunds: NSArray? {
-        return swiftValue.refunds?.map { TransactionAdvancedCommerceInfoRefundWrapper(swiftValue: $0) } as NSArray?
-    }
-    
-    @objc public var revocationDate: Date? {
-        swiftValue.revocationDate
+    public init?(swiftItem: Any?) {
+        // Only unwrap if OS supports it
+        guard #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+              let item = swiftItem as? Transaction.AdvancedCommerceInfo.Item else {
+            return nil
+        }
+
+        self.details = TransactionAdvancedCommerceInfoItemDetailsWrapper(swiftValue: item.details)
+        self.refunds = item.refunds?.map { TransactionAdvancedCommerceInfoRefundWrapper(swiftValue: $0) } as NSArray?
+        self.revocationDate = item.revocationDate
+
+        super.init()
     }
 }
 
 // MARK: - Transaction.AdvancedCommerceInfo.Item.Details
 @objc(TransactionAdvancedCommerceInfoItemDetails)
-@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
 public final class TransactionAdvancedCommerceInfoItemDetailsWrapper: NSObject {
-    private let swiftValue: Transaction.AdvancedCommerceInfo.Item.Details
+    
+    private let underlying: Any?
 
-    public init(swiftValue: Transaction.AdvancedCommerceInfo.Item.Details) {
-        self.swiftValue = swiftValue
+    public init?(swiftValue: Any?) {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) {
+            // Only cast inside the #available check
+            guard swiftValue is Transaction.AdvancedCommerceInfo.Item.Details else { return nil }
+            self.underlying = swiftValue
+        } else {
+            // Older OS: cannot wrap, return nil
+            self.underlying = nil
+        }
+        super.init()
     }
-    
-    @objc public var sku: String { swiftValue.sku }
-    @objc public var displayName: String { swiftValue.displayName }
-    @objc public var itemDescription: String { swiftValue.description }
-    
+
+    @objc public var sku: String {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let details = underlying as? Transaction.AdvancedCommerceInfo.Item.Details {
+            return details.sku
+        }
+        return "Unknown SKU"
+    }
+
+    @objc public var displayName: String {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let details = underlying as? Transaction.AdvancedCommerceInfo.Item.Details {
+            return details.displayName
+        }
+        return "Unknown"
+    }
+
+    @objc public var itemDescription: String {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let details = underlying as? Transaction.AdvancedCommerceInfo.Item.Details {
+            return details.description
+        }
+        return "Unknown"
+    }
+
     @objc public var offer: TransactionAdvancedCommerceInfoOfferWrapper? {
-        swiftValue.offer.map { TransactionAdvancedCommerceInfoOfferWrapper(swiftValue: $0) }
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let details = underlying as? Transaction.AdvancedCommerceInfo.Item.Details,
+           let offer = details.offer {
+            return TransactionAdvancedCommerceInfoOfferWrapper(swiftValue: offer)
+        }
+        return nil
     }
-    
+
     @objc public var price: NSDecimalNumber {
-        swiftValue.price as NSDecimalNumber
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let details = underlying as? Transaction.AdvancedCommerceInfo.Item.Details {
+            return details.price as NSDecimalNumber
+        }
+        return NSDecimalNumber.zero
     }
 }
 
 // MARK: - Transaction.AdvancedCommerceInfo.Offer
 @objc(TransactionAdvancedCommerceInfoOffer)
-@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
 public final class TransactionAdvancedCommerceInfoOfferWrapper: NSObject {
-    private let swiftValue: Transaction.AdvancedCommerceInfo.Offer
-    
-    public init(swiftValue: Transaction.AdvancedCommerceInfo.Offer) {
-        self.swiftValue = swiftValue
+
+    private let underlying: Any?
+
+    /// Runtime-safe initializer
+    public init?(swiftValue: Any?) {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let offer = swiftValue as? Transaction.AdvancedCommerceInfo.Offer {
+            self.underlying = offer
+        } else {
+            self.underlying = nil
+        }
+        super.init()
     }
-    
+
     @objc public var price: NSDecimalNumber {
-        swiftValue.price as NSDecimalNumber
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let offer = underlying as? Transaction.AdvancedCommerceInfo.Offer {
+            return offer.price as NSDecimalNumber
+        }
+        return NSDecimalNumber.zero
     }
-    
-    @objc public var period: ProductSubscriptionPeriodWrapper {
-        ProductSubscriptionPeriodWrapper(swiftValue: swiftValue.period)
+
+    @objc public var period: ProductSubscriptionPeriodWrapper? {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let offer = underlying as? Transaction.AdvancedCommerceInfo.Offer {
+            return ProductSubscriptionPeriodWrapper(swiftValue: offer.period)
+        }
+        return nil
     }
-    
+
     @objc public var periodCount: NSNumber {
-        NSNumber(value: swiftValue.periodCount)
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let offer = underlying as? Transaction.AdvancedCommerceInfo.Offer {
+            return NSNumber(value: offer.periodCount)
+        }
+        return NSNumber(value: 0)
     }
-    
-    @objc public var reason: TransactionAdvancedCommerceInfoOfferReasonWrapper {
-        TransactionAdvancedCommerceInfoOfferReasonWrapper(swiftValue: swiftValue.reason)
+
+    @objc public var reason: TransactionAdvancedCommerceInfoOfferReasonWrapper? {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let offer = underlying as? Transaction.AdvancedCommerceInfo.Offer {
+            return TransactionAdvancedCommerceInfoOfferReasonWrapper(swiftValue: offer.reason)
+        }
+        return nil
     }
 }
 
 // MARK: - Transaction.AdvancedCommerceInfo.Offer.Reason
 @objc(TransactionAdvancedCommerceInfoOfferReason)
-@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
 public final class TransactionAdvancedCommerceInfoOfferReasonWrapper: NSObject {
-    private let swiftValue: Transaction.AdvancedCommerceInfo.Offer.Reason
-    
-    public init(swiftValue: Transaction.AdvancedCommerceInfo.Offer.Reason) {
-        self.swiftValue = swiftValue
+
+    private let underlying: Any?
+
+    @objc public let rawValue: String
+
+    /// Runtime-safe initializer
+    public init?(swiftValue: Any?) {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) {
+            guard let reason = swiftValue as? Transaction.AdvancedCommerceInfo.Offer.Reason else {
+                return nil
+            }
+            self.underlying = reason
+            self.rawValue = reason.rawValue
+        } else {
+            // Older OS versions cannot wrap, store a placeholder if needed
+            self.underlying = nil
+            self.rawValue = "unknown"
+        }
+        super.init()
     }
-    
-    @objc public var rawValue: String { swiftValue.rawValue }
-    
-    @objc public static let acquisition =
-    TransactionAdvancedCommerceInfoOfferReasonWrapper(swiftValue: .acquisition)
-    @objc public static let retention =
-    TransactionAdvancedCommerceInfoOfferReasonWrapper(swiftValue: .retention)
-    @objc public static let winBack =
-    TransactionAdvancedCommerceInfoOfferReasonWrapper(swiftValue: .winBack)
-    
+
+    /// Convenience static instances
+    @objc public static var acquisition: TransactionAdvancedCommerceInfoOfferReasonWrapper {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) {
+            return TransactionAdvancedCommerceInfoOfferReasonWrapper(swiftValue: Transaction.AdvancedCommerceInfo.Offer.Reason.acquisition)!
+        } else {
+            return TransactionAdvancedCommerceInfoOfferReasonWrapper(swiftValue: nil)!
+        }
+    }
+
+    @objc public static var retention: TransactionAdvancedCommerceInfoOfferReasonWrapper {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) {
+            return TransactionAdvancedCommerceInfoOfferReasonWrapper(swiftValue: Transaction.AdvancedCommerceInfo.Offer.Reason.retention)!
+        } else {
+            return TransactionAdvancedCommerceInfoOfferReasonWrapper(swiftValue: nil)!
+        }
+    }
+
+    @objc public static var winBack: TransactionAdvancedCommerceInfoOfferReasonWrapper {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) {
+            return TransactionAdvancedCommerceInfoOfferReasonWrapper(swiftValue: Transaction.AdvancedCommerceInfo.Offer.Reason.winBack)!
+        } else {
+            return TransactionAdvancedCommerceInfoOfferReasonWrapper(swiftValue: nil)!
+        }
+    }
+
     @objc public func isEqualToReason(_ other: TransactionAdvancedCommerceInfoOfferReasonWrapper?) -> Bool {
         guard let other = other else { return false }
         return self.rawValue == other.rawValue
@@ -312,54 +430,73 @@ public final class TransactionAdvancedCommerceInfoOfferReasonWrapper: NSObject {
 
 // MARK: - Transaction.AdvancedCommerceInfo.Refund
 @objc(TransactionAdvancedCommerceInfoRefund)
-@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
 public final class TransactionAdvancedCommerceInfoRefundWrapper: NSObject {
-    private let swiftValue: Transaction.AdvancedCommerceInfo.Refund
+    private let underlying: Any?
     
-    public init(swiftValue: Transaction.AdvancedCommerceInfo.Refund) {
-        self.swiftValue = swiftValue
-    }
+    @objc public let reason: TransactionAdvancedCommerceInfoRefundReasonWrapper?
+    @objc public let type: TransactionAdvancedCommerceInfoRefundTypeWrapper?
+    @objc public let date: Date
+    @objc public let amount: NSDecimalNumber
     
-    @objc public var reason: TransactionAdvancedCommerceInfoRefundReasonWrapper {
-        TransactionAdvancedCommerceInfoRefundReasonWrapper(swiftValue: swiftValue.reason)
-    }
-    
-    @objc public var type: TransactionAdvancedCommerceInfoRefundTypeWrapper {
-        TransactionAdvancedCommerceInfoRefundTypeWrapper(swiftValue: swiftValue.type)
-    }
-    
-    @objc public var date: Date { swiftValue.date }
-    
-    @objc public var amount: NSDecimalNumber {
-        swiftValue.amount as NSDecimalNumber
+    public init?(swiftValue: Any?) {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let refund = swiftValue as? Transaction.AdvancedCommerceInfo.Refund {
+
+            self.underlying = refund
+            self.reason = TransactionAdvancedCommerceInfoRefundReasonWrapper(swiftValue: refund.reason)
+            self.type = TransactionAdvancedCommerceInfoRefundTypeWrapper(swiftValue: refund.type)
+            self.date = refund.date
+            self.amount = refund.amount as NSDecimalNumber
+
+        } else {
+            // Unsupported OS: provide safe defaults
+            self.underlying = nil
+            self.reason = TransactionAdvancedCommerceInfoRefundReasonWrapper(swiftValue: nil)!
+            self.type = TransactionAdvancedCommerceInfoRefundTypeWrapper(swiftValue: nil)!
+            self.date = Date.distantPast
+            self.amount = NSDecimalNumber.zero
+        }
+
+        super.init()
     }
 }
 
 // MARK: - Transaction.AdvancedCommerceInfo.Refund.Reason
 @objc(TransactionAdvancedCommerceInfoRefundReason)
-@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
 public final class TransactionAdvancedCommerceInfoRefundReasonWrapper: NSObject {
-    private let swiftValue: Transaction.AdvancedCommerceInfo.Refund.Reason
-    
-    public init(swiftValue: Transaction.AdvancedCommerceInfo.Refund.Reason) {
-        self.swiftValue = swiftValue
+
+    private let raw: String
+
+    public init?(swiftValue: Any?) {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let reason = swiftValue as? Transaction.AdvancedCommerceInfo.Refund.Reason {
+            self.raw = reason.rawValue
+        } else {
+            // Unsupported OS: return a generic "unknown" reason
+            self.raw = "unknown"
+        }
+        super.init()
     }
-    
-    @objc public var rawValue: String { swiftValue.rawValue }
-    
-    @objc public static let legal =
-    TransactionAdvancedCommerceInfoRefundReasonWrapper(swiftValue: .legal)
-    @objc public static let modifyItems =
-    TransactionAdvancedCommerceInfoRefundReasonWrapper(swiftValue: .modifyItems)
-    @objc public static let unintended =
-    TransactionAdvancedCommerceInfoRefundReasonWrapper(swiftValue: .unintended)
-    @objc public static let unfulfilled =
-    TransactionAdvancedCommerceInfoRefundReasonWrapper(swiftValue: .unfulfilled)
-    @objc public static let unsatisfied =
-    TransactionAdvancedCommerceInfoRefundReasonWrapper(swiftValue: .unsatisfied)
-    @objc public static let other =
-    TransactionAdvancedCommerceInfoRefundReasonWrapper(swiftValue: .other)
-    
+
+    /// Fallback initializer from raw string for ObjC
+    @objc public init(rawValue: String) {
+        self.raw = rawValue
+        super.init()
+    }
+
+    @objc public var rawValue: String { raw }
+
+    // ObjC-friendly constants
+    @objc public static let legal = TransactionAdvancedCommerceInfoRefundReasonWrapper(rawValue: "legal")
+    @objc public static let modifyItems = TransactionAdvancedCommerceInfoRefundReasonWrapper(rawValue: "modifyItems")
+    @objc public static let unintended = TransactionAdvancedCommerceInfoRefundReasonWrapper(rawValue: "unintended")
+    @objc public static let unfulfilled = TransactionAdvancedCommerceInfoRefundReasonWrapper(rawValue: "unfulfilled")
+    @objc public static let unsatisfied = TransactionAdvancedCommerceInfoRefundReasonWrapper(rawValue: "unsatisfied")
+    @objc public static let other = TransactionAdvancedCommerceInfoRefundReasonWrapper(rawValue: "other")
+    @objc public static let unknown = TransactionAdvancedCommerceInfoRefundReasonWrapper(rawValue: "unknown")
+
     @objc public func isEqualToReason(_ other: TransactionAdvancedCommerceInfoRefundReasonWrapper?) -> Bool {
         guard let other = other else { return false }
         return self.rawValue == other.rawValue
@@ -368,23 +505,36 @@ public final class TransactionAdvancedCommerceInfoRefundReasonWrapper: NSObject 
 
 // MARK: - Transaction.AdvancedCommerceInfo.Refund.Type
 @objc(TransactionAdvancedCommerceInfoRefundType)
-@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
 public final class TransactionAdvancedCommerceInfoRefundTypeWrapper: NSObject {
-    private let swiftValue: Transaction.AdvancedCommerceInfo.Refund.RefundType
-    
-    public init(swiftValue: Transaction.AdvancedCommerceInfo.Refund.RefundType) {
-        self.swiftValue = swiftValue
+
+    private let raw: String
+
+    /// Runtime-safe initializer from Swift RefundType
+    public init?(swiftValue: Any?) {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let type = swiftValue as? Transaction.AdvancedCommerceInfo.Refund.RefundType {
+            self.raw = type.rawValue
+        } else {
+            self.raw = "unknown"
+        }
+        super.init()
     }
-    
-    @objc public var rawValue: String { swiftValue.rawValue }
-    
-    @objc public static let custom =
-    TransactionAdvancedCommerceInfoRefundTypeWrapper(swiftValue: .custom)
-    @objc public static let proRated =
-    TransactionAdvancedCommerceInfoRefundTypeWrapper(swiftValue: .proRated)
-    @objc public static let full =
-    TransactionAdvancedCommerceInfoRefundTypeWrapper(swiftValue: .full)
-    
+
+    /// Fallback initializer from raw string for ObjC
+    @objc public init(rawValue: String) {
+        self.raw = rawValue
+        super.init()
+    }
+
+    @objc public var rawValue: String { raw }
+
+    // ObjC-friendly constants
+    @objc public static let custom = TransactionAdvancedCommerceInfoRefundTypeWrapper(rawValue: "custom")
+    @objc public static let proRated = TransactionAdvancedCommerceInfoRefundTypeWrapper(rawValue: "proRated")
+    @objc public static let full = TransactionAdvancedCommerceInfoRefundTypeWrapper(rawValue: "full")
+    @objc public static let unknown = TransactionAdvancedCommerceInfoRefundTypeWrapper(rawValue: "unknown")
+
     @objc public func isEqualToType(_ other: TransactionAdvancedCommerceInfoRefundTypeWrapper?) -> Bool {
         guard let other = other else { return false }
         return self.rawValue == other.rawValue
@@ -420,15 +570,27 @@ public final class RefundRequestErrorWrapper: NSObject {
     
     // MARK: - LocalizedError bridging
     @objc public var errorDescription: String? {
-        swiftError.errorDescription
+        if #available(macCatalyst 15.4, *) {
+            swiftError.errorDescription
+        } else {
+            "Unsupported on the OS version"
+        }
     }
 
     @objc public var failureReason: String? {
-        swiftError.failureReason
+        if #available(macCatalyst 15.4, *) {
+            swiftError.failureReason
+        } else {
+            "Unsupported on the OS version"
+        }
     }
 
     @objc public var recoverySuggestion: String? {
-        swiftError.recoverySuggestion
+        if #available(macCatalyst 15.4, *) {
+            swiftError.recoverySuggestion
+        } else {
+            "Unsupported on the OS version"
+        }
     }
 }
 

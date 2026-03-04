@@ -42,6 +42,10 @@ public final class ProductTypeWrapper: NSObject {
     @objc public static var autoRenewable: ProductTypeWrapper {
         ProductTypeWrapper(swiftValue: Product.ProductType.autoRenewable)
     }
+    
+    @objc public static var unknown: ProductTypeWrapper {
+        ProductTypeWrapper(rawValue: "unknown")
+    }
 
     // Allow equality testing
     @objc public func isEqualToType(_ other: ProductTypeWrapper?) -> Bool {
@@ -119,11 +123,15 @@ public final class ProductSubscriptionInfoWrapper: NSObject {
     }
     
     @objc
-    @available(iOS 18.0, macOS 15.0, tvOS 18.0, *)
+    //@available(iOS 18.0, macOS 15.0, tvOS 18.0, *)
     public var winBackOffers: NSArray {
-        info.winBackOffers
-            .map { ProductSubscriptionOfferWrapper(swiftValue: $0) }
-        as NSArray
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, *) {
+            return info.winBackOffers
+                .map { ProductSubscriptionOfferWrapper(swiftValue: $0) }
+            as NSArray
+        } else {
+            return []
+        }
     }
     
     @objc
@@ -169,7 +177,7 @@ public final class ProductSubscriptionInfoWrapper: NSObject {
                 let values = try await info.status
                 completion(values.map { SubscriptionStatusWrapper(swiftValue: $0) }, nil)
             } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 completion(nil, nsError)
             }
         }
@@ -185,18 +193,22 @@ public final class ProductSubscriptionInfoWrapper: NSObject {
                 let values = try await Product.SubscriptionInfo.status(for: groupID)
                 completion(values.map { SubscriptionStatusWrapper(swiftValue: $0) }, nil)
             } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 completion(nil, nsError)
             }
         }
     }
     
     @objc
-    @available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+    //@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
     public static func statusForTransactionIDAsync(
         _ transactionID: NSNumber,
         completion: @escaping (SubscriptionStatusWrapper?, NSError?) -> Void
     ) {
+        guard #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) else {
+            completion(nil, NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Requires iOS 18.4+"]))
+            return
+        }
         Task {
             do {
                 let result = try await Product.SubscriptionInfo
@@ -208,44 +220,64 @@ public final class ProductSubscriptionInfoWrapper: NSObject {
                     completion(nil, nil)
                 }
             } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 completion(nil, nsError)
             }
         }
     }
     
     @objc
-    @available(iOS 16.4, macOS 13.3, tvOS 16.4, *)
+    //@available(iOS 16.4, macOS 13.4, tvOS 16.4, *)
     public var groupLevelValue: NSInteger {
-        info.groupLevel
+        if #available(iOS 16.4, macOS 13.3, tvOS 16.4, *) {
+            return info.groupLevel
+        } else {
+            return 0
+        }
     }
     
     @objc
-    @available(iOS 16.4, macOS 13.3, tvOS 16.4, *)
+    //@available(iOS 16.4, macOS 13.4, tvOS 16.4, *)
     public var groupDisplayName: String {
-        info.groupDisplayName
+        if #available(iOS 16.4, macOS 13.3, tvOS 16.4, *) {
+            return info.groupDisplayName
+        } else {
+            return "Unsupported on this OS Version"
+        }
     }
     
     @objc
-    @available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+    //@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
     public static func updateAsync(
         completion: @escaping ([SubscriptionStatusWrapper]) -> Void
     ) {
+        guard #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) else {
+            completion([])
+            return
+        }
+        
         Task {
             var results: [SubscriptionStatusWrapper] = []
             var iterator = Product.SubscriptionInfo.Status.updates.makeAsyncIterator()
+            
             while let status = await iterator.next() {
                 results.append(SubscriptionStatusWrapper(swiftValue: status))
             }
+            
             completion(results)
         }
     }
     
     @objc
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
+    //@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
     public static func allStatusesAsync(
         completion: @escaping ([NSString: [SubscriptionStatusWrapper]]) -> Void
     ) {
+        guard #available(iOS 17.0, macOS 14.0, tvOS 17.0, *) else {
+            completion([:])
+            return
+        }
+        
         Task {
             var results: [NSString: [SubscriptionStatusWrapper]] = [:]
 
@@ -261,9 +293,7 @@ public final class ProductSubscriptionInfoWrapper: NSObject {
 
 // MARK: - Visibility
 @objc(Visibility)
-@available(iOS 16.4, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
+//@available(iOS 16.4, *)@available(macOS, unavailable)@available(tvOS, unavailable)
 public enum VisibilityWrapper: Int {
     case appStoreConnectDefault
     case visible
@@ -272,76 +302,158 @@ public enum VisibilityWrapper: Int {
 
 // MARK: - PromotionInfo
 @objc(PromotionInfo)
-@available(iOS 16.4, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
+//@available(iOS 16.4, *)@available(macOS, unavailable)@available(tvOS, unavailable)
 public final class PromotionInfoWrapper: NSObject {
 
-    let promotion: Product.PromotionInfo
+    private let promotion: Any
 
-    public init(_ promotion: Product.PromotionInfo) {
-        self.promotion = promotion
-    }
-
-    @objc
-    public var productID: String {
-        promotion.productID
-    }
-
-    @objc
-    public var visibility: VisibilityWrapper {
-        switch promotion.visibility {
-        case .appStoreConnectDefault: return .appStoreConnectDefault
-        case .visible: return .visible
-        case .hidden: return .hidden
-        @unknown default: return .appStoreConnectDefault
+    public init?(swiftValue: Any?) {
+        if #available(iOS 16.4, *) {
+            if let promo = swiftValue as? Product.PromotionInfo {
+                self.promotion = promo
+                super.init()
+            } else {
+                return nil
+            }
+        } else {
+            // Not supported on < iOS 16.4
+            return nil
         }
     }
 
     @objc
+    //@available(iOS 16.4, *)
+    public var productID: String {
+        if #available(iOS 16.4, *),
+           let promo = promotion as? Product.PromotionInfo {
+            return promo.productID
+        }
+        return "Unsupported on this OS version"
+    }
+
+    @objc
+    //@available(iOS 16.4, *)
+    public var visibility: VisibilityWrapper {
+        if #available(iOS 16.4, *),
+           let promo = promotion as? Product.PromotionInfo {
+
+            switch promo.visibility {
+            case .appStoreConnectDefault: return .appStoreConnectDefault
+            case .visible: return .visible
+            case .hidden: return .hidden
+            @unknown default: return .appStoreConnectDefault
+            }
+        }
+        return .appStoreConnectDefault
+    }
+
+    @objc
+    //@available(iOS 16.4, *)
     public func updateAsync(_ completion: @escaping (NSError?) -> Void) {
+        guard #available(iOS 16.4, *),
+              let promo = promotion as? Product.PromotionInfo else {
+            completion(NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Requires iOS 16.4+"]))
+            return
+        }
+
         Task {
             do {
-                try await promotion.update()
+                try await promo.update()
                 completion(nil)
             } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(domain: "plugin.howitzergames.storekit2",code: 1001,userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 completion(nsError)
             }
         }
     }
 
     @objc
-    public class func currentOrderAsync(_ completion: @escaping ([PromotionInfoWrapper]?, NSError?) -> Void) {
+    //@available(iOS 16.4, *)
+    public class func currentOrderAsync(
+        _ completion: @escaping ([PromotionInfoWrapper]?, NSError?) -> Void
+    ) {
+        guard #available(iOS 16.4, *) else {
+            completion(
+                nil,
+                NSError(
+                    domain: "plugin.howitzergames.storekit2",
+                    code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: "Requires iOS 16.4+"]
+                )
+            )
+            return
+        }
+
         Task {
             do {
                 let promos = try await Product.PromotionInfo.currentOrder
-                completion(promos.map { PromotionInfoWrapper($0) }, nil)
+                let wrapped = promos.compactMap { PromotionInfoWrapper(swiftValue: $0) }
+                completion(wrapped, nil)
             } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(
+                    domain: "plugin.howitzergames.storekit2",
+                    code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
+                )
                 completion(nil, nsError)
             }
         }
     }
 
     @objc
-    public class func updateProductOrderAsync(byID order: [String], completion: @escaping (NSError?) -> Void) {
+    //@available(iOS 16.4, *)
+    public class func updateProductOrderAsync(
+        byID order: [String],
+        completion: @escaping (NSError?) -> Void
+    ) {
+        guard #available(iOS 16.4, *) else {
+            completion(
+                NSError(
+                    domain: "plugin.howitzergames.storekit2",
+                    code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: "Requires iOS 16.4+"]
+                )
+            )
+            return
+        }
+
         Task {
             do {
                 try await Product.PromotionInfo.updateProductOrder(byID: order)
                 completion(nil)
             } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(
+                    domain: "plugin.howitzergames.storekit2",
+                    code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
+                )
                 completion(nsError)
             }
         }
     }
-
+    
     @objc
-    public class func updateProductVisibilityAsync(_ visibility: VisibilityWrapper, for productID: String, completion: @escaping (NSError?) -> Void) {
+    //@available(iOS 16.4, *)
+    public class func updateProductVisibilityAsync(
+        _ visibility: VisibilityWrapper,
+        for productID: String,
+        completion: @escaping (NSError?) -> Void
+    ) {
+        guard #available(iOS 16.4, *) else {
+            completion(
+                NSError(
+                    domain: "plugin.howitzergames.storekit2",
+                    code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: "Requires iOS 16.4+"]
+                )
+            )
+            return
+        }
+
         Task {
             do {
                 let swiftVisibility: Product.PromotionInfo.Visibility
+
                 switch visibility {
                 case .appStoreConnectDefault: swiftVisibility = .appStoreConnectDefault
                 case .visible: swiftVisibility = .visible
@@ -349,24 +461,51 @@ public final class PromotionInfoWrapper: NSObject {
                 @unknown default: swiftVisibility = .appStoreConnectDefault
                 }
 
-                try await Product.PromotionInfo.updateProductVisibility(swiftVisibility, for: productID)
+                try await Product.PromotionInfo
+                    .updateProductVisibility(swiftVisibility, for: productID)
+
                 completion(nil)
             } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(
+                    domain: "plugin.howitzergames.storekit2",
+                    code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
+                )
                 completion(nsError)
             }
         }
     }
 
     @objc
-    public class func updateAllAsync(_ promotions: [PromotionInfoWrapper], completion: @escaping (NSError?) -> Void) {
+    //@available(iOS 16.4, *)
+    public class func updateAllAsync(
+        _ promotions: [PromotionInfoWrapper],
+        completion: @escaping (NSError?) -> Void
+    ) {
+        guard #available(iOS 16.4, *) else {
+            completion(
+                NSError(
+                    domain: "plugin.howitzergames.storekit2",
+                    code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: "Requires iOS 16.4+"]
+                )
+            )
+            return
+        }
+
         Task {
             do {
-                let swiftPromotions = promotions.map { $0.promotion }
-                try await Product.PromotionInfo.updateAll(swiftPromotions)
+                let swiftPromos = promotions.compactMap {
+                    $0.promotion as? Product.PromotionInfo
+                }
+                try await Product.PromotionInfo.updateAll(swiftPromos)
                 completion(nil)
             } catch {
-                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(
+                    domain: "plugin.howitzergames.storekit2",
+                    code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
+                )
                 completion(nsError)
             }
         }
@@ -472,16 +611,31 @@ public final class ProductPurchaseOptionsWrapper: NSObject {
     }
     
     @objc
-    @available(iOS, introduced: 17.4, deprecated: 26.0, message: "Sign promotional offers with JWS and use promotionalOffer(_:compactJWS:) instead")
+    /*@available(iOS, introduced: 17.4, deprecated: 26.0, message: "Sign promotional offers with JWS and use promotionalOffer(_:compactJWS:) instead")
     @available(macOS, introduced: 14.4, deprecated: 26.0, message: "Sign promotional offers with JWS and use promotionalOffer(_:compactJWS:) instead")
-    @available(tvOS, introduced: 17.4, deprecated: 26.0, message: "Sign promotional offers with JWS and use promotionalOffer(_:compactJWS:) instead")
+    @available(tvOS, introduced: 17.4, deprecated: 26.0, message: "Sign promotional offers with JWS and use promotionalOffer(_:compactJWS:) instead")*/
     public static func promotionalOffer(
         offerID: String,
         signature: SubscriptionOfferSignatureWrapper
-    ) -> ProductPurchaseOptionsWrapper {
-        return ProductPurchaseOptionsWrapper(
-            Product.PurchaseOption.promotionalOffer(offerID: offerID, signature: signature.swiftSignature)
-        )
+    ) -> ProductPurchaseOptionsWrapper? {
+
+        if #available(iOS 17.4, macOS 14.4, tvOS 17.4, *) {
+
+            guard let swiftSigAny = signature.swiftSignature(),
+                  let swiftSig = swiftSigAny as? Product.SubscriptionOffer.Signature
+            else {
+                return nil
+            }
+
+            let option = Product.PurchaseOption.promotionalOffer(
+                offerID: offerID,
+                signature: swiftSig
+            )
+
+            return ProductPurchaseOptionsWrapper(option)
+        }
+
+        return nil
     }
 
     @objc public static func promotionalOffer(
@@ -493,11 +647,18 @@ public final class ProductPurchaseOptionsWrapper: NSObject {
     }
     
     @objc
-    @available(iOS 18.0, macOS 15.0, tvOS 18.0, *)
-    public static func winBackOffer(_ offer: ProductSubscriptionOfferWrapper) -> ProductPurchaseOptionsWrapper {
-        return ProductPurchaseOptionsWrapper(
-            Product.PurchaseOption.winBackOffer(offer.offer)
-        )
+    //@available(iOS 18.0, macOS 15.0, tvOS 18.0, *)
+    public static func winBackOffer(
+        _ offer: ProductSubscriptionOfferWrapper
+    ) -> ProductPurchaseOptionsWrapper? {
+
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, *) {
+            return ProductPurchaseOptionsWrapper(
+                Product.PurchaseOption.winBackOffer(offer.offer)
+            )
+        } else {
+            return nil
+        }
     }
 
     @objc public static func introductoryOfferEligibility(compactJWS: String) -> ProductPurchaseOptionsWrapper {
@@ -591,15 +752,27 @@ public final class ProductPurchaseErrorWrapper: NSObject {
     
     // MARK: - LocalizedError bridging
     @objc public var errorDescription: String? {
-        swiftError.errorDescription
+        if #available(macCatalyst 15.4, *) {
+            swiftError.errorDescription
+        } else {
+            "Unsupported on the OS version"
+        }
     }
 
     @objc public var failureReason: String? {
-        swiftError.failureReason
+        if #available(macCatalyst 15.4, *) {
+            swiftError.failureReason
+        } else {
+            "Unsupported on the OS version"
+        }
     }
 
     @objc public var recoverySuggestion: String? {
-        swiftError.recoverySuggestion
+        if #available(macCatalyst 15.4, *) {
+            swiftError.recoverySuggestion
+        } else {
+            "Unsupported on the OS version"
+        }
     }
 }
 
@@ -626,9 +799,15 @@ public final class SubscriptionOfferTypeWrapper: NSObject {
         SubscriptionOfferTypeWrapper(swiftValue: .promotional)
     }
 
-    @available(iOS 18.0, macOS 15.0, tvOS 18.0, *)
-    @objc public static var winBack: SubscriptionOfferTypeWrapper {
-        SubscriptionOfferTypeWrapper(swiftValue: .winBack)
+    @objc
+    //@available(iOS 18.0, macOS 15.0, tvOS 18.0, *)
+    public static var winBack: SubscriptionOfferTypeWrapper {
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, *) {
+            return SubscriptionOfferTypeWrapper(swiftValue: .winBack)
+        } else {
+            // Safe fallback for < iOS 18
+            return SubscriptionOfferTypeWrapper(rawValue: "winBack")
+        }
     }
 
     public var swiftValue: Product.SubscriptionOffer.OfferType {
@@ -680,9 +859,9 @@ public final class SubscriptionOfferPaymentModeWrapper: NSObject {
 
 // MARK: - SubscriptionOfferSignatureWrapper
 @objc(SubscriptionOfferSignature)
-@available(iOS, introduced: 17.4, deprecated: 26.0, message: "Sign promotional offers with JWS and use PurchaseOption.promotionalOffer(_:compactJWS:) instead")
+/*@available(iOS, introduced: 17.4, deprecated: 26.0, message: "Sign promotional offers with JWS and use PurchaseOption.promotionalOffer(_:compactJWS:) instead")
 @available(macOS, introduced: 14.4, deprecated: 26.0, message: "Sign promotional offers with JWS and use PurchaseOption.promotionalOffer(_:compactJWS:) instead")
-@available(tvOS, introduced: 17.4, deprecated: 26.0, message: "Sign promotional offers with JWS and use PurchaseOption.promotionalOffer(_:compactJWS:) instead")
+@available(tvOS, introduced: 17.4, deprecated: 26.0, message: "Sign promotional offers with JWS and use PurchaseOption.promotionalOffer(_:compactJWS:) instead")*/
 public final class SubscriptionOfferSignatureWrapper: NSObject {
 
     @objc public let keyID: String
@@ -690,31 +869,53 @@ public final class SubscriptionOfferSignatureWrapper: NSObject {
     @objc public let timestamp: NSNumber
     @objc public let signatureData: Data
 
-    public let swiftSignature: Product.SubscriptionOffer.Signature
+    private let underlying: Any?
+    
+    func swiftSignature() -> Any? {
+        if #available(iOS 17.4, macOS 14.4, tvOS 17.4, *) {
+            return Product.SubscriptionOffer.Signature(
+                keyID: keyID,
+                nonce: nonce as UUID,
+                timestamp: timestamp.intValue,
+                signature: signatureData
+            )
+        }
+        return nil
+    }
 
-    public init(swiftSignature: Product.SubscriptionOffer.Signature) {
-        self.swiftSignature = swiftSignature
-        self.keyID = swiftSignature.keyID
-        self.nonce = swiftSignature.nonce as NSUUID
-        self.timestamp = NSNumber(value: swiftSignature.timestamp)
-        self.signatureData = swiftSignature.signature
-        super.init()
+    public init?(swiftValue: Any?) {
+        if #available(iOS 17.4, macOS 14.4, tvOS 17.4, *),
+           let signature = swiftValue as? Product.SubscriptionOffer.Signature {
+
+            self.keyID = signature.keyID
+            self.nonce = signature.nonce as NSUUID
+            self.timestamp = NSNumber(value: signature.timestamp)
+            self.signatureData = signature.signature
+            self.underlying = signature
+            super.init()
+        } else {
+            return nil
+        }
     }
     
-    /// Factory method to create a wrapper from raw components
-    @objc public static func from(
-        keyID: String,
-        nonce: NSUUID,
-        timestamp: NSNumber,
-        signatureData: Data
-    ) -> SubscriptionOfferSignatureWrapper {
-        let swiftSig = Product.SubscriptionOffer.Signature(
-            keyID: keyID,
-            nonce: nonce as UUID,
-            timestamp: timestamp.intValue,
-            signature: signatureData
-        )
-        return SubscriptionOfferSignatureWrapper(swiftSignature: swiftSig)
+    @objc
+    //@available(iOS 17.4, macOS 14.4, tvOS 17.4, *)
+    public static func from(keyID: String, nonce: NSUUID, timestamp: NSNumber, signatureData: Data
+    ) -> SubscriptionOfferSignatureWrapper? {
+
+        if #available(iOS 17.4, macOS 14.4, tvOS 17.4, *) {
+
+            let swiftSig = Product.SubscriptionOffer.Signature(
+                keyID: keyID,
+                nonce: nonce as UUID,
+                timestamp: timestamp.intValue,
+                signature: signatureData
+            )
+
+            return SubscriptionOfferSignatureWrapper(swiftValue: swiftSig)
+        } else {
+            return nil
+        }
     }
 }
 
@@ -905,21 +1106,36 @@ public final class RenewalInfoWrapper: NSObject {
     }
     
     @objc
+    //@available(iOS 18.0, macOS 15.0, tvOS 18.0, *)
     public var offerType: TransactionOfferTypeWrapper {
         guard let ot = info.offerType else {
             return .unknown
         }
-        switch ot {
-        case .introductory:
-            return .introductory
-        case .promotional:
-            return .promotional
-        case .code:
-            return .code
-        case .winBack:
-            return .winBack
-        default:
-            return .unknown
+
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, *) {
+            switch ot {
+            case .introductory:
+                return .introductory
+            case .promotional:
+                return .promotional
+            case .code:
+                return .code
+            case .winBack:
+                return .winBack
+            default:
+                return .unknown
+            }
+        } else {
+            switch ot {
+            case .introductory:
+                return .introductory
+            case .promotional:
+                return .promotional
+            case .code:
+                return .code
+            default:
+                return .unknown
+            }
         }
     }
 
@@ -941,21 +1157,28 @@ public final class RenewalInfoWrapper: NSObject {
     }
     
     @objc
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+    //@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
     public var currency: CurrencyWrapper? {
-        guard let swiftCurrency = Locale.current.currency else {
-            return nil // Return nil if there's no currency (fallback to USD or other default)
+        if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) {
+            guard let swiftCurrency = Locale.current.currency else {
+                return nil
+            }
+            return CurrencyWrapper(swiftValue: swiftCurrency)
         }
-        return CurrencyWrapper(swiftValue: swiftCurrency)
+        return nil
     }
     
     @objc public var currencyCode: String? {
         info.currencyCode
     }
     
-    @available(iOS 18.0, macOS 15.0, tvOS 18.0, *)
-    @objc public var eligibleWinBackOfferIDs: NSArray {
-        return info.eligibleWinBackOfferIDs.map { $0 as NSString } as NSArray
+    @objc
+    //@available(iOS 18.0, macOS 15.0, tvOS 18.0, *)
+    public var eligibleWinBackOfferIDs: NSArray {
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, *) {
+            return info.eligibleWinBackOfferIDs.map { $0 as NSString } as NSArray
+        }
+        return []
     }
 
     @objc public var deviceVerification: Data {
@@ -971,10 +1194,13 @@ public final class RenewalInfoWrapper: NSObject {
     }
     
     @objc
-    @available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+    //@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
     public var advancedCommerceInfo: SubscriptionAdvancedCommerceInfoWrapper? {
-        guard let info = info.advancedCommerceInfo else { return nil }
-        return SubscriptionAdvancedCommerceInfoWrapper(swiftInfo: info)
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) {
+            guard let swiftInfo = info.advancedCommerceInfo else { return nil }
+            return SubscriptionAdvancedCommerceInfoWrapper(swiftInfo: swiftInfo)
+        }
+        return nil
     }
 
     @objc public var appAccountToken: NSUUID? {
@@ -1022,23 +1248,35 @@ public final class SubscriptionStatusWrapper: NSObject {
 
 // MARK: - SubscriptionAdvancedCommerceItemWrapper
 @objc(SubscriptionAdvancedCommerceItem)
-@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
 public final class SubscriptionAdvancedCommerceItemWrapper: NSObject {
 
-    // Wrap the underlying Swift struct
     @objc public let details: TransactionAdvancedCommerceInfoItemDetailsWrapper
 
-    // Initialize from Swift type
-    public init(swiftItem: Product.SubscriptionInfo.RenewalInfo.AdvancedCommerceInfo.Item) {
-        // Wrap the details struct properly
-        self.details = TransactionAdvancedCommerceInfoItemDetailsWrapper(swiftValue: swiftItem.details)
+    /// Internal storage of the underlying Swift item
+    private let underlying: Any?
+
+    /// Safe initializer used when 18.4+ is available
+    public init?(swiftItem: Any) {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let item = swiftItem as? Product.SubscriptionInfo.RenewalInfo.AdvancedCommerceInfo.Item {
+
+            guard let wrappedDetails = TransactionAdvancedCommerceInfoItemDetailsWrapper(swiftValue: item.details) else {
+                return nil
+            }
+            self.details = wrappedDetails
+            self.underlying = item
+        } else {
+            return nil
+        }
+
         super.init()
     }
 }
 
 // MARK: - AdvancedCommerceInfoWrapper
 @objc(SubcriptionAdvancedCommerceInfo)
-@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
+//@available(iOS 18.4, macOS 15.4, tvOS 18.4, *)
 public final class SubscriptionAdvancedCommerceInfoWrapper: NSObject {
 
     @objc public let consistencyToken: String
@@ -1049,14 +1287,25 @@ public final class SubscriptionAdvancedCommerceInfoWrapper: NSObject {
     @objc public let period: ProductSubscriptionPeriodWrapper
     @objc public let items: [SubscriptionAdvancedCommerceItemWrapper]
 
-    public init(swiftInfo: Product.SubscriptionInfo.RenewalInfo.AdvancedCommerceInfo) {
-        self.consistencyToken = swiftInfo.consistencyToken
-        self.requestReferenceID = swiftInfo.requestReferenceID
-        self.taxCode = swiftInfo.taxCode
-        self.descriptionText = swiftInfo.description
-        self.displayName = swiftInfo.displayName
-        self.period = ProductSubscriptionPeriodWrapper(swiftValue: swiftInfo.period)
-        self.items = swiftInfo.items.map { SubscriptionAdvancedCommerceItemWrapper(swiftItem: $0) }
+    private let underlying: Any?
+
+    public init?(swiftInfo: Any) {
+        if #available(iOS 18.4, macOS 15.4, tvOS 18.4, *),
+           let info = swiftInfo as? Product.SubscriptionInfo.RenewalInfo.AdvancedCommerceInfo {
+
+            self.consistencyToken = info.consistencyToken
+            self.requestReferenceID = info.requestReferenceID
+            self.taxCode = info.taxCode
+            self.descriptionText = info.description
+            self.displayName = info.displayName
+            self.period = ProductSubscriptionPeriodWrapper(swiftValue: info.period)
+            self.items = info.items.compactMap { SubscriptionAdvancedCommerceItemWrapper(swiftItem: $0) }
+
+            self.underlying = info
+        } else {
+            // Return nil if unavailable at runtime
+            return nil
+        }
 
         super.init()
     }

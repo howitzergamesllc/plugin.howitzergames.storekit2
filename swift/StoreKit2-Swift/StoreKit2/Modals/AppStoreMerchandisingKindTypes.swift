@@ -10,12 +10,11 @@ import UIKit
 import StoreKit
 
 @objc(AppStoreMerchandisingKindPresentationResult)
-@available(iOS 26.0, tvOS 26.0, *)
-@available(macOS, unavailable)
+//@available(iOS 26.0, tvOS 26.0, *)@available(macOS, unavailable)
 public class AppStoreMerchandisingKindPresentationResultWrapper: NSObject {
 
     /// The underlying Swift PresentationResult (internal use)
-    private let underlying: AppStoreMerchandisingKind.PresentationResult
+    private let underlying: Any?
 
     /// Whether the presentation was dismissed
     @objc public let isDismissed: Bool
@@ -24,21 +23,34 @@ public class AppStoreMerchandisingKindPresentationResultWrapper: NSObject {
     @objc public let purchaseResult: ProductPurchaseResultWrapper?
 
     // MARK: - Initializer
-    init(underlying result: AppStoreMerchandisingKind.PresentationResult) {
+    public init(underlying result: Any?) {
         self.underlying = result
 
-        switch result {
-        case .dismissed:
-            self.isDismissed = true
-            self.purchaseResult = nil
-        case .purchaseCompleted(let purchaseResult):
-            self.isDismissed = false
-            self.purchaseResult = ProductPurchaseResultWrapper(purchaseResult)
-        @unknown default:
+        if #available(iOS 26.0, tvOS 26.0, *),
+           let result = result as? AppStoreMerchandisingKind.PresentationResult {
+            
+            // iOS 26+ logic
+            switch result {
+            case .dismissed:
+                self.isDismissed = true
+                self.purchaseResult = nil
+            case .purchaseCompleted(let purchaseResult):
+                self.isDismissed = false
+                self.purchaseResult = ProductPurchaseResultWrapper(purchaseResult)
+            @unknown default:
+                self.isDismissed = true
+                self.purchaseResult = nil
+            }
+        } else {
+            // Older OSes or unsupported types
             self.isDismissed = true
             self.purchaseResult = nil
         }
-        
+
         super.init()
+    }
+    
+    public var swiftValue: Any? {
+        return underlying
     }
 }

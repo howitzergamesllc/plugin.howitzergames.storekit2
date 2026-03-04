@@ -12,7 +12,7 @@ import StoreKit
 // MARK: - VerificationResult<AppTransaction>
 // Verification result signing sale of the app.
 @objc(AppTransactionVerificationResult)
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+//@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
 public final class AppTransactionVerificationResultWrapper : NSObject {
     
     @objc public let isVerified: Bool
@@ -27,50 +27,70 @@ public final class AppTransactionVerificationResultWrapper : NSObject {
     @objc public let deviceVerification: Data
     @objc public let deviceVerificationNonce: NSUUID
     
-    @objc public let transaction: AppTransactionWrapper
+    @objc public let transaction: AppTransactionWrapper?
 
-    internal init(verification: VerificationResult<AppTransaction>) {
+    internal init?(verification: Any) {
 
-        switch verification {
-        case .verified(let transaction):
-            self.transaction = AppTransactionWrapper(transaction: transaction)
-            self.isVerified = true
-            self.error = .none
-            // Keep a reference to the wrapped transaction if needed
-            // let wrappedTransaction = AppTransactionWrapper(transaction: transaction)
+        if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) {
 
-        case .unverified(let transaction, let error):
-            self.transaction = AppTransactionWrapper(transaction: transaction)
-            self.isVerified = false
-            switch error {
-            case .revokedCertificate: self.error = .revokedCertificate
-            case .invalidCertificateChain: self.error = .invalidCertificateChain
-            case .invalidDeviceVerification: self.error = .invalidDeviceVerification
-            case .invalidEncoding: self.error = .invalidEncoding
-            case .invalidSignature: self.error = .invalidSignature
-            case .missingRequiredProperties: self.error = .missingRequiredProperties
-            @unknown default: self.error = .unknown
+            guard let verification = verification as? VerificationResult<AppTransaction> else {
+                return nil
             }
-            // let wrappedTransaction = AppTransactionWrapper(transaction: transaction)
+
+            switch verification {
+            case .verified(let transaction):
+                self.transaction = AppTransactionWrapper(transaction: transaction)
+                self.isVerified = true
+                self.error = .none
+
+            case .unverified(let transaction, let error):
+                self.transaction = AppTransactionWrapper(transaction: transaction)
+                self.isVerified = false
+
+                switch error {
+                case .revokedCertificate: self.error = .revokedCertificate
+                case .invalidCertificateChain: self.error = .invalidCertificateChain
+                case .invalidDeviceVerification: self.error = .invalidDeviceVerification
+                case .invalidEncoding: self.error = .invalidEncoding
+                case .invalidSignature: self.error = .invalidSignature
+                case .missingRequiredProperties: self.error = .missingRequiredProperties
+                @unknown default: self.error = .unknown
+                }
+            }
+
+            self.jwsRepresentation = verification.jwsRepresentation
+            self.headerData = verification.headerData
+            self.payloadData = verification.payloadData
+            self.signatureData = verification.signatureData
+            self.signedData = verification.signedData
+            self.signedDate = verification.signedDate
+            self.deviceVerification = verification.deviceVerification
+            self.deviceVerificationNonce = verification.deviceVerificationNonce as NSUUID
+
+        } else {
+            // Runtime fallback for iOS 15
+            self.transaction = nil
+            self.isVerified = false
+            self.error = .unknown
+            self.jwsRepresentation = ""
+            self.headerData = Data()
+            self.payloadData = Data()
+            self.signatureData = Data()
+            self.signedData = Data()
+            self.signedDate = Date.distantPast
+            self.deviceVerification = Data()
+            self.deviceVerificationNonce = NSUUID()
         }
 
-        // Fill JWS data (same for both cases)
-        self.jwsRepresentation = verification.jwsRepresentation
-        self.headerData = verification.headerData
-        self.payloadData = verification.payloadData
-        self.signatureData = verification.signatureData
-        self.signedData = verification.signedData
-        self.signedDate = verification.signedDate
-        self.deviceVerification = verification.deviceVerification
-        self.deviceVerificationNonce = verification.deviceVerificationNonce as NSUUID
+        super.init()
     }
 
     // AppTransactionVerificationResultWrapper
     @objc public func getPayloadValue() throws -> AppTransactionWrapper {
-        if !self.isVerified {
+        guard isVerified, let transaction else {
             let verificationerror = VerificationErrorCode(rawValue: error.rawValue)
             let nsError = NSError(
-                domain: "maui.storekit2.apple",
+                domain: "plugin.howitzergames.storekit2",
                 code: self.error.rawValue,
                 userInfo: [
                     NSLocalizedDescriptionKey: "VerificationError",
@@ -78,18 +98,19 @@ public final class AppTransactionVerificationResultWrapper : NSObject {
                     "VerificationCode": String(describing: verificationerror?.rawValue),
                     "IsVerified": false,
                     // Transaction context
-                    "AppTransactionID": transaction.appTransactionID,
-                    "AppID": transaction.appID ?? NSNull(),
-                    "BundleID": transaction.bundleID,
-                    "AppVersionID": transaction.appVersionID ?? NSNull()
+                    "AppTransactionID": transaction?.appTransactionID ?? "",
+                    "AppID": transaction?.appID ?? NSNull(),
+                    "BundleID": transaction?.bundleID ?? "",
+                    "AppVersionID": transaction?.appVersionID ?? NSNull()
                 ]
             )
             throw nsError
         }
+        
         return transaction  // store this internally in the wrapper
     }
 
-    @objc public func getUnsafePayloadValue() -> AppTransactionWrapper {
+    @objc public func getUnsafePayloadValue() -> AppTransactionWrapper? {
         return transaction
     }
 }
@@ -151,7 +172,7 @@ public final class TransactionVerificationResultWrapper: NSObject {
     @objc public func getPayloadValue() throws -> TransactionWrapper {
         if !self.isVerified {
             let nsError = NSError(
-                domain: "maui.storekit2.apple",
+                domain: "plugin.howitzergames.storekit2",
                 code: self.error.rawValue,
                 userInfo: [
                     NSLocalizedDescriptionKey: "VerificationError",
@@ -239,7 +260,7 @@ public final class RenewalInfoVerificationResultWrapper: NSObject {
     @objc public func getPayloadValue() throws -> RenewalInfoWrapper {
         if !self.isVerified {
             let nsError = NSError(
-                domain: "maui.storekit2.apple",
+                domain: "plugin.howitzergames.storekit2",
                 code: self.error.rawValue,
                 userInfo: [
                     NSLocalizedDescriptionKey: "VerificationError",

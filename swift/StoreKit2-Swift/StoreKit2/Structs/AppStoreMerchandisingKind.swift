@@ -10,27 +10,30 @@ import UIKit
 import StoreKit
 
 @objc(AppStoreMerchandisingKind)
-@available(iOS 26.0, tvOS 26.0, *)
-@available(macOS, unavailable)
+//@available(iOS 26.0, tvOS 26.0, *)
 public final class AppStoreMerchandisingKindWrapper: NSObject {
 
-    // Stored Swift value
-    let swiftValue: AppStoreMerchandisingKind
+    private let underlying: Any?
 
-    public init(swiftValue: AppStoreMerchandisingKind) {
-        self.swiftValue = swiftValue
+    public var swiftValue: Any? {
+        return underlying
     }
-    
+
+    public init(swiftValue: Any?) {
+        self.underlying = swiftValue
+    }
+
     @objc
     public static func subscriptionBundle(
         _ groupID: String,
         completion: @escaping (AppStoreMerchandisingKindWrapper?) -> Void
     ) {
-        // Assuming AppStoreMerchandisingKind.subscriptionBundle(groupID) doesn't throw and just returns the value or something else
-        let value = AppStoreMerchandisingKind.subscriptionBundle(groupID)
-        
-        // Wrap the result and pass it back to the completion block
-        let wrapper = AppStoreMerchandisingKindWrapper(swiftValue: value)
-        completion(wrapper)
+        if #available(iOS 26.0, tvOS 26.0, *) {
+            let value = AppStoreMerchandisingKind.subscriptionBundle(groupID)
+            let wrapper = AppStoreMerchandisingKindWrapper(swiftValue: value)
+            completion(wrapper)
+        } else {
+            completion(nil)
+        }
     }
 }

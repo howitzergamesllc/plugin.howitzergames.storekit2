@@ -11,54 +11,66 @@ import StoreKit
 
 // MARK: - PurchaseIntentWrapper
 @objc(PurchaseIntent)
-@available(iOS 16.4, macOS 14.4, *)
-@available(tvOS, unavailable)
+//@available(iOS 16.4, macOS 14.4, *)@available(tvOS, unavailable)
 public final class PurchaseIntentWrapper: NSObject {
 
-    /// Wrapped product
-    @objc public let product: ProductWrapper
-
-    /// Wrapped subscription offer (if present)
+    @objc public let product: ProductWrapper?
     @objc public let offer: ProductSubscriptionOfferWrapper?
-
-    /// Identifier of the purchase intent
     @objc public let identifier: NSString
 
     /// The underlying Swift PurchaseIntent (kept private)
-    private let swiftValue: PurchaseIntent
+    private let swiftValue: Any?
 
-    public init(swiftValue: PurchaseIntent) {
+    public init?(swiftValue: Any?) {
         self.swiftValue = swiftValue
-        self.product = ProductWrapper(product: swiftValue.product)
 
-        if #available(iOS 18.0, macOS 15.0, *) {
-            if let offer = swiftValue.offer {
-                self.offer = ProductSubscriptionOfferWrapper(swiftValue: offer)
+        if #available(iOS 16.4, macOS 14.4, *) {
+            // Only attempt the cast on supported OS
+            if let intent = swiftValue as? PurchaseIntent {
+                self.product = ProductWrapper(product: intent.product)
+
+                if #available(iOS 18.0, macOS 15.0, *) {
+                    if let offer = intent.offer {
+                        self.offer = ProductSubscriptionOfferWrapper(swiftValue: offer)
+                    } else {
+                        self.offer = nil
+                    }
+                } else {
+                    self.offer = nil
+                }
+
+                self.identifier = intent.id as NSString
             } else {
+                self.product = nil
                 self.offer = nil
+                self.identifier = "" as NSString
             }
         } else {
+            // OS is too old, do not attempt any cast
+            self.product = nil
             self.offer = nil
+            self.identifier = "" as NSString
         }
-
-        self.identifier = swiftValue.id as NSString
 
         super.init()
     }
     
     @objc
     public static func observeIntentsAsync(
-        intentHandler: @escaping (PurchaseIntentWrapper) -> Void,
+        intentHandler: @escaping (PurchaseIntentWrapper?) -> Void,
         completion: @escaping () -> Void
     ) {
-        Task {
-            // Iterate the AsyncSequence
-            for await intent in PurchaseIntent.intents {
-                let wrapped = PurchaseIntentWrapper(swiftValue: intent)
-                intentHandler(wrapped)
+        if #available(iOS 16.4, macOS 14.4, *) {
+            Task {
+                // Use optional casting to make runtime-safe
+                for await rawIntent in PurchaseIntent.intents {
+                    let wrapped = PurchaseIntentWrapper(swiftValue: rawIntent as Any)
+                    intentHandler(wrapped)
+                }
+                completion()
             }
-
-            // Only reached if the sequence ever ends (unlikely)
+        } else {
+            // Older OS versions: nothing to observe
             completion()
         }
     }

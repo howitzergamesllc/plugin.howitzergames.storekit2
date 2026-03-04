@@ -15,6 +15,7 @@ interface AdvancedCommerceProductPurchaseOption
 	// +(AdvancedCommerceProductPurchaseOption * _Nonnull)onStorefrontChangeWithShouldContinuePurchase:(id)shouldContinuePurchase __attribute__((warn_unused_result("")));
 	[Static]
 	[Export ("onStorefrontChangeWithShouldContinuePurchase:")]
+	[return: NullAllowed]
 	AdvancedCommerceProductPurchaseOption OnStorefrontChangeWithShouldContinuePurchase (Func<StoreFront, bool> shouldContinuePurchase);
 }
 
@@ -268,7 +269,7 @@ interface AppTransactionVerificationResult
 	NSUuid DeviceVerificationNonce { get; }
 
 	// @property (readonly, nonatomic, strong) AppTransaction * _Nonnull transaction;
-	[Export ("transaction", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("transaction", ArgumentSemantic.Strong)]
 	AppTransaction Transaction { get; }
 
 	// -(AppTransaction * _Nullable)getPayloadValueAndReturnError:(NSError * _Nullable * _Nullable)error __attribute__((warn_unused_result("")));
@@ -277,7 +278,7 @@ interface AppTransactionVerificationResult
 	AppTransaction GetPayloadValueAndReturnError ([NullAllowed] out NSError error);
 
 	// -(AppTransaction * _Nonnull)getUnsafePayloadValue __attribute__((warn_unused_result("")));
-	[Export ("getUnsafePayloadValue")]
+	[NullAllowed, Export ("getUnsafePayloadValue")]
 	
 	AppTransaction UnsafePayloadValue { get; }
 }
@@ -313,7 +314,7 @@ interface AppTransaction
 	string BundleID { get; }
 
 	// @property (readonly, nonatomic, strong) AppStoreEnvironment * _Nonnull environment;
-	[Export ("environment", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("environment", ArgumentSemantic.Strong)]
 	AppStoreEnvironment Environment { get; }
 
 	// @property (readonly, copy, nonatomic) NSString * _Nonnull originalAppVersion;
@@ -326,7 +327,7 @@ interface AppTransaction
 
 	// @property (readonly, nonatomic, strong) SWIFT_AVAILABILITY(tvos,introduced=18.4) AppStorePlatform * originalPlatform __attribute__((availability(tvos, introduced=18.4))) __attribute__((availability(macos, introduced=15.4))) __attribute__((availability(ios, introduced=18.4)));
 	[TV (18, 4), Mac (15, 4), iOS (18, 4)]
-	[Export ("originalPlatform", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("originalPlatform", ArgumentSemantic.Strong)]
 	AppStorePlatform OriginalPlatform { get; }
 
 	// @property (readonly, copy, nonatomic) NSString * _Nullable originalPlatformStringRepresentation;
@@ -567,6 +568,11 @@ interface InvalidRequestError
 	[Export ("message")]
 	string Message { get; }
 
+	// -(instancetype _Nullable)initWithSwiftError:(id _Nullable)swiftError __attribute__((objc_designated_initializer));
+	[Export ("initWithSwiftError:")]
+	[DesignatedInitializer]
+	NativeHandle Constructor ([NullAllowed] NSObject swiftError);
+
 	// @property (readonly, nonatomic, strong) NSError * _Nonnull nsError;
 	[Export ("nsError", ArgumentSemantic.Strong)]
 	NSError NsError { get; }
@@ -684,7 +690,7 @@ interface PaymentMethodBinding
 	void BindAsyncWithCompletion (Action<PaymentMethodBindingError> completion);
 
 	// @property (readonly, copy, nonatomic) NSString * _Nonnull pinningID;
-	[Export ("pinningID")]
+	[NullAllowed, Export ("pinningID")]
 	string PinningID { get; }
 }
 
@@ -782,6 +788,7 @@ interface ProductPurchaseOptions
 	[Deprecated (PlatformName.iOS, 26, 0, message: "Sign promotional offers with JWS and use promotionalOffer(_:compactJWS:) instead")]
 	[Static]
 	[Export ("promotionalOfferWithOfferID:signature:")]
+	[return: NullAllowed]
 	ProductPurchaseOptions PromotionalOfferWithOfferID (string offerID, SubscriptionOfferSignature signature);
 
 	// +(id)promotionalOfferWithOfferID:(NSString * _Nonnull)offerID compactJWS:(NSString * _Nonnull)compactJWS __attribute__((warn_unused_result("")));
@@ -793,6 +800,7 @@ interface ProductPurchaseOptions
 	[TV (18,0), Mac (15,0), iOS (18,0)]
 	[Static]
 	[Export ("winBackOffer:")]
+	[return: NullAllowed]
 	ProductPurchaseOptions WinBackOffer (SubscriptionOffer offer);
 
 	// +(ProductPurchaseOptions * _Nonnull)introductoryOfferEligibilityWithCompactJWS:(NSString * _Nonnull)compactJWS __attribute__((warn_unused_result("")));
@@ -994,6 +1002,11 @@ interface ProductType
 	[Export ("autoRenewable", ArgumentSemantic.Strong)]
 	ProductType AutoRenewable { get; }
 
+	// @property (readonly, nonatomic, strong, class) ProductType * _Nonnull unknown;
+	[Static]
+	[Export ("unknown", ArgumentSemantic.Strong)]
+	ProductType Unknown { get; }
+
 	// -(id)isEqualToType:(ProductType * _Nullable)other __attribute__((warn_unused_result("")));
 	[Export ("isEqualToType:")]
 	bool IsEqualToType ([NullAllowed] ProductType other);
@@ -1038,7 +1051,7 @@ interface Product
 	NSData JsonRepresentation { get; }
 
 	// @property (readonly, nonatomic, strong) ProductSubscriptionInfo * _Nullable subscription;
-	[NullAllowed, Export ("subscription", ArgumentSemantic.Strong)]
+	[Export ("subscription", ArgumentSemantic.Strong)]
 	ProductSubscriptionInfo Subscription { get; }
 
 	// -(void)purchaseAsyncWithOptions:(id)options completion:(void (^ _Nonnull)(ProductPurchaseResult * _Nullable, NSError * _Nullable))completion __attribute__((availability(tvos, introduced=15.0))) __attribute__((availability(macos, introduced=12.0))) __attribute__((availability(ios, introduced=15.0)));
@@ -1139,7 +1152,7 @@ interface PromotionInfo
 interface PurchaseIntent
 {
 	// @property (readonly, nonatomic, strong) Product * _Nonnull product;
-	[Export ("product", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("product", ArgumentSemantic.Strong)]
 	Product Product { get; }
 
 	// @property (readonly, nonatomic, strong) SubscriptionOffer * _Nullable offer;
@@ -1331,7 +1344,7 @@ interface RenewalInfo
 
 	// @property (readonly, nonatomic, strong) SWIFT_AVAILABILITY(tvos,introduced=18.4) SubcriptionAdvancedCommerceInfo * advancedCommerceInfo __attribute__((availability(tvos, introduced=18.4))) __attribute__((availability(macos, introduced=15.4))) __attribute__((availability(ios, introduced=18.4)));
 	[TV (18, 4), Mac (15, 4), iOS (18, 4)]
-	[Export ("advancedCommerceInfo", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("advancedCommerceInfo", ArgumentSemantic.Strong)]
 	SubcriptionAdvancedCommerceInfo AdvancedCommerceInfo { get; }
 
 	// @property (readonly, nonatomic, strong) NSUuid * _Nullable appAccountToken;
@@ -1404,7 +1417,7 @@ interface StoreFront
 
 		// @property (readonly, nonatomic, strong) SWIFT_AVAILABILITY(tvos,introduced=16.0) CurrencyWrapper * currency __attribute__((availability(tvos, introduced=16.0))) __attribute__((availability(macos, introduced=13.0))) __attribute__((availability(ios, introduced=16.0)));
 	[TV (16, 0), Mac (13, 0), iOS (16, 0)]
-	[Export ("currency", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("currency", ArgumentSemantic.Strong)]
 	CurrencyWrapper Currency { get; }
 
 	// @property (readonly, copy, nonatomic) NSString * _Nullable currencyCode;
@@ -1489,7 +1502,7 @@ interface SubcriptionAdvancedCommerceInfo
 interface SubscriptionAdvancedCommerceItem
 {
 	// @property (readonly, nonatomic) id _Nonnull details;
-	[Export ("details")]
+	[Export ("details", ArgumentSemantic.Strong)]
 	TransactionAdvancedCommerceInfoItemDetails Details { get; }
 }
 
@@ -1558,6 +1571,7 @@ interface SubscriptionOfferSignature
 	// +(SubscriptionOfferSignature * _Nonnull)fromKeyID:(NSString * _Nonnull)keyID nonce:(NSUUID * _Nonnull)nonce timestamp:(NSNumber * _Nonnull)timestamp signatureData:(NSData * _Nonnull)signatureData __attribute__((warn_unused_result("")));
 	[Static]
 	[Export ("fromKeyID:nonce:timestamp:signatureData:")]
+	[return: NullAllowed]
 	SubscriptionOfferSignature FromKeyID (string keyID, NSUuid nonce, NSNumber timestamp, NSData signatureData);
 }
 
@@ -1654,7 +1668,7 @@ interface TransactionAdvancedCommerceInfoItemDetails
 interface TransactionAdvancedCommerceInfoItem
 {
 	// @property (readonly, nonatomic, strong) TransactionAdvancedCommerceInfoItemDetails * _Nonnull details;
-	[Export ("details", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("details", ArgumentSemantic.Strong)]
 	TransactionAdvancedCommerceInfoItemDetails Details { get; }
 
 	// @property (readonly, nonatomic, strong) int * _Nullable refunds;
@@ -1725,6 +1739,11 @@ interface TransactionAdvancedCommerceInfoOffer
 [BaseType(typeof(NSObject))]
 interface TransactionAdvancedCommerceInfoRefundReason
 {
+	// -(instancetype _Nonnull)initWithRawValue:(NSString * _Nonnull)rawValue __attribute__((objc_designated_initializer));
+	[Export ("initWithRawValue:")]
+	[DesignatedInitializer]
+	NativeHandle Constructor (string rawValue);
+
 	// @property (readonly, copy, nonatomic) NSString * _Nonnull rawValue;
 	[Export ("rawValue")]
 	string RawValue { get; }
@@ -1759,6 +1778,11 @@ interface TransactionAdvancedCommerceInfoRefundReason
 	[Export ("other", ArgumentSemantic.Strong)]
 	TransactionAdvancedCommerceInfoRefundReason Other { get; }
 
+	// @property (readonly, nonatomic, strong, class) TransactionAdvancedCommerceInfoRefundReason * _Nonnull unknown;
+	[Static]
+	[Export ("unknown", ArgumentSemantic.Strong)]
+	TransactionAdvancedCommerceInfoRefundReason Unknown { get; }
+
 	// -(id)isEqualToReason:(TransactionAdvancedCommerceInfoRefundReason * _Nullable)other __attribute__((warn_unused_result("")));
 	[Export ("isEqualToReason:")]
 	bool IsEqualToReason ([NullAllowed] TransactionAdvancedCommerceInfoRefundReason other);
@@ -1770,6 +1794,11 @@ interface TransactionAdvancedCommerceInfoRefundReason
 [BaseType(typeof(NSObject))]
 interface TransactionAdvancedCommerceInfoRefundType
 {
+	// -(instancetype _Nonnull)initWithRawValue:(NSString * _Nonnull)rawValue __attribute__((objc_designated_initializer));
+	[Export ("initWithRawValue:")]
+	[DesignatedInitializer]
+	NativeHandle Constructor (string rawValue);
+
 	// @property (readonly, copy, nonatomic) NSString * _Nonnull rawValue;
 	[Export ("rawValue")]
 	string RawValue { get; }
@@ -1789,6 +1818,11 @@ interface TransactionAdvancedCommerceInfoRefundType
 	[Export ("full", ArgumentSemantic.Strong)]
 	TransactionAdvancedCommerceInfoRefundType Full { get; }
 
+	// @property (readonly, nonatomic, strong, class) TransactionAdvancedCommerceInfoRefundType * _Nonnull unknown;
+	[Static]
+	[Export ("unknown", ArgumentSemantic.Strong)]
+	TransactionAdvancedCommerceInfoRefundType Unknown { get; }
+
 	// -(id)isEqualToType:(TransactionAdvancedCommerceInfoRefundType * _Nullable)other __attribute__((warn_unused_result("")));
 	[Export ("isEqualToType:")]
 	bool IsEqualToType ([NullAllowed] TransactionAdvancedCommerceInfoRefundType other);
@@ -1801,11 +1835,11 @@ interface TransactionAdvancedCommerceInfoRefundType
 interface TransactionAdvancedCommerceInfoRefund
 {
 	// @property (readonly, nonatomic, strong) TransactionAdvancedCommerceInfoRefundReason * _Nonnull reason;
-	[Export ("reason", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("reason", ArgumentSemantic.Strong)]
 	TransactionAdvancedCommerceInfoRefundReason Reason { get; }
 
 	// @property (readonly, nonatomic, strong) TransactionAdvancedCommerceInfoRefundType * _Nonnull type;
-	[Export ("type", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("type", ArgumentSemantic.Strong)]
 	TransactionAdvancedCommerceInfoRefundType Type { get; }
 
 	// @property (readonly, copy, nonatomic) NSDate * _Nonnull date;
@@ -1916,7 +1950,7 @@ interface TransactionOffer
 
 	// @property (readonly, nonatomic, strong) SWIFT_AVAILABILITY(tvos,introduced=18.4) ProductSubscriptionPeriod * period __attribute__((availability(tvos, introduced=18.4))) __attribute__((availability(macos, introduced=15.4))) __attribute__((availability(ios, introduced=18.4)));
 	[TV (18, 4), Mac (15, 4), iOS (18, 4)]
-	[Export ("period", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("period", ArgumentSemantic.Strong)]
 	ProductSubscriptionPeriod Period { get; }
 }
 
@@ -1957,12 +1991,12 @@ interface TransactionReason
 
 	// @property (readonly, nonatomic, strong, class) TransactionReason * _Nonnull purchase;
 	[Static]
-	[Export ("purchase", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("purchase", ArgumentSemantic.Strong)]
 	TransactionReason Purchase { get; }
 
 	// @property (readonly, nonatomic, strong, class) TransactionReason * _Nonnull renewal;
 	[Static]
-	[Export ("renewal", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("renewal", ArgumentSemantic.Strong)]
 	TransactionReason Renewal { get; }
 
 	// -(id)isEqualToReason:(TransactionReason * _Nullable)other __attribute__((warn_unused_result("")));
@@ -2087,7 +2121,7 @@ interface Transaction
 
 	// @property (readonly, nonatomic, strong) SWIFT_AVAILABILITY(tvos,introduced=17.2) TransactionOffer * offer __attribute__((availability(tvos, introduced=17.2))) __attribute__((availability(macos, introduced=14.2))) __attribute__((availability(ios, introduced=17.2)));
 	[TV (17, 2), Mac (14, 2), iOS (17, 2)]
-	[Export ("offer", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("offer", ArgumentSemantic.Strong)]
 	TransactionOffer Offer { get; }
 
 	// @property (readonly, nonatomic) enum TransactionOfferType offerType;
@@ -2124,7 +2158,7 @@ interface Transaction
 
 	// @property (readonly, nonatomic, strong) SWIFT_AVAILABILITY(tvos,introduced=16.0) AppStoreEnvironment * environment __attribute__((availability(tvos, introduced=16.0))) __attribute__((availability(macos, introduced=13.0))) __attribute__((availability(ios, introduced=16.0)));
 	[TV (16, 0), Mac (13, 0), iOS (16, 0)]
-	[Export ("environment", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("environment", ArgumentSemantic.Strong)]
 	AppStoreEnvironment Environment { get; }
 
 	// @property (readonly, copy, nonatomic) NSString * _Nonnull environmentStringRepresentation;
@@ -2133,7 +2167,7 @@ interface Transaction
 
 	// @property (readonly, nonatomic, strong) SWIFT_AVAILABILITY(tvos,introduced=17.0) TransactionReason * reason __attribute__((availability(tvos, introduced=17.0))) __attribute__((availability(macos, introduced=14.0))) __attribute__((availability(ios, introduced=17.0)));
 	[TV (17, 0), Mac (14, 0), iOS (17, 0)]
-	[Export ("reason", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("reason", ArgumentSemantic.Strong)]
 	TransactionReason Reason { get; }
 
 	// @property (readonly, copy, nonatomic) NSString * _Nonnull reasonStringRepresentation;
@@ -2142,7 +2176,7 @@ interface Transaction
 
 	// @property (readonly, nonatomic, strong) SWIFT_AVAILABILITY(tvos,introduced=17.0) StoreFront * storefront __attribute__((availability(tvos, introduced=17.0))) __attribute__((availability(macos, introduced=14.0))) __attribute__((availability(ios, introduced=17.0)));
 	[TV (17, 0), Mac (14, 0), iOS (17, 0)]
-	[Export ("storefront", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("storefront", ArgumentSemantic.Strong)]
 	StoreFront Storefront { get; }
 
 	// @property (readonly, copy, nonatomic) NSString * _Nonnull storefrontCountryCode;
@@ -2155,7 +2189,7 @@ interface Transaction
 
 	// @property (readonly, nonatomic, strong) SWIFT_AVAILABILITY(tvos,introduced=16.0) CurrencyWrapper * currency __attribute__((availability(tvos, introduced=16.0))) __attribute__((availability(macos, introduced=13.0))) __attribute__((availability(ios, introduced=16.0)));
 	[TV (16, 0), Mac (13, 0), iOS (16, 0)]
-	[Export ("currency", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("currency", ArgumentSemantic.Strong)]
 	CurrencyWrapper Currency { get; }
 
 	// @property (readonly, copy, nonatomic) NSString * _Nullable currencyCode;
@@ -2171,7 +2205,7 @@ interface Transaction
 	NSData DeviceVerification { get; }
 
 	// @property (readonly, copy, nonatomic) NSUuid * _Nonnull deviceVerificationNonce;
-	[Export ("deviceVerificationNonce", ArgumentSemantic.Copy)]
+	[NullAllowed, Export ("deviceVerificationNonce", ArgumentSemantic.Copy)]
 	NSUuid DeviceVerificationNonce { get; }
 
 	// @property (readonly, nonatomic, strong) TransactionOwnershipType * _Nonnull ownershipType;
@@ -2184,7 +2218,7 @@ interface Transaction
 
 	// @property (readonly, nonatomic, strong) SWIFT_AVAILABILITY(tvos,introduced=18.4) TransactionAdvancedCommerceInfo * advancedCommerceInfo __attribute__((availability(tvos, introduced=18.4))) __attribute__((availability(macos, introduced=15.4))) __attribute__((availability(ios, introduced=18.4)));
 	[TV (18, 4), Mac (15, 4), iOS (18, 4)]
-	[Export ("advancedCommerceInfo", ArgumentSemantic.Strong)]
+	[NullAllowed, Export ("advancedCommerceInfo", ArgumentSemantic.Strong)]
 	TransactionAdvancedCommerceInfo AdvancedCommerceInfo { get; }
 
 	// -(void)finishAsync:(void (^ _Nonnull)(void))completion;

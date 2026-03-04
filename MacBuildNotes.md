@@ -201,12 +201,12 @@ git push -u origin main
 
 ### Push packages for private publishing.
 ```zsh
-dotnet nuget push "$HOME/path/to/your/projects/plugin.howitzergames.storekit2/source/Apple/StoreKit2/bin/StoreKit2/release/plugin.howitzergames.storekit2.10.0.20.nupkg" --source "https://nuget.pkg.github.com/howitzergamesllc/index.json" --api-key $GITHUBTOKEN
+dotnet nuget push "$HOME/path/to/your/projects/plugin.howitzergames.storekit2/source/Apple/StoreKit2/bin/StoreKit2/release/plugin.howitzergames.storekit2.10.0.30.nupkg" --source "https://nuget.pkg.github.com/howitzergamesllc/index.json" --api-key $GITHUBTOKEN
 ```
 
 ### Push packages for public publishing
 ```zsh
-dotnet nuget push "$HOME/path/to/your/projects/plugin.howitzergames.storekit2/source/Apple/StoreKit2/bin/StoreKit2/release/plugin.howitzergames.storekit2.10.0.20.nupkg" --api-key "$NUGETTOKEN" --source https://api.nuget.org/v3/index.json
+dotnet nuget push "$HOME/path/to/your/projects/plugin.howitzergames.storekit2/source/Apple/StoreKit2/bin/StoreKit2/release/plugin.howitzergames.storekit2.10.0.30.nupkg" --api-key "$NUGETTOKEN" --source https://api.nuget.org/v3/index.json
 ```
 
 ### Test Build the published package to verify changes work:
