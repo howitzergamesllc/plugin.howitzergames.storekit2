@@ -1,7 +1,6 @@
 # plugin.howitzergames.storekit2
 
 ## Todo:
-- Add convenience named completion handlers and result classes.
 
 # Reproducing the project
 ## Download the project

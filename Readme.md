@@ -29,16 +29,16 @@ dotnet add package plugin.howitzergames.storekit2
 
 
 # Building
-See the build notes for specific instructions on building this nuget here: [BuildNotes(Mac)]https://github.com/howitzergamesllc/plugin.howitzergames.storekit2/blob/main/BuildNotes(Mac).md
+See the build notes for specific instructions on building this nuget here: [BuildNotes(Mac)](https://github.com/howitzergamesllc/plugin.howitzergames.storekit2/blob/main/BuildNotes(Mac).md)
 
 
 # License
-The license developers are required to accept is a generic MIT license located at: [License]https://github.com/howitzergamesllc/plugin.howitzergames.storekit2/blob/main/License.md
+The license developers are required to accept is a generic MIT license located at: [License](https://github.com/howitzergamesllc/plugin.howitzergames.storekit2/blob/main/License.md)
 
 
 # Apple SDK Notices
 Apple SDK notices can be found here:
-https://github.com/howitzergamesllc/plugin.howitzergames.storekit2/blob/main/source/Apple/StoreKit2/External-Dependency-Info.txt
+[ExternalDependencyInfo](https://github.com/howitzergamesllc/plugin.howitzergames.storekit2/blob/main/source/Apple/StoreKit2/External-Dependency-Info.txt)
 
 
 # Release Notes:
