@@ -1,18 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks>net11.0-ios;net11.0-maccatalyst</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>true</ImplicitUsings>
     <IsBindingProject>true</IsBindingProject>
     <NoBindingEmbedding>true</NoBindingEmbedding>
-    <SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion>16.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">17.0</SupportedOSPlatformVersion>
     <RootNamespace>StoreKit2</RootNamespace>
     <AssemblyName>StoreKit2</AssemblyName>
-    <AssemblyVersion>10.0.30.0</AssemblyVersion>
-    <FileVersion>10.0.30.0</FileVersion>
+    <AssemblyVersion>11.0.0.0</AssemblyVersion>
+    <FileVersion>11.0.0.0</FileVersion>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <PackageVersion>11.0.0-local</PackageVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageVersion>11.0.0.0</PackageVersion>
+  </PropertyGroup>
+
   <PropertyGroup>
     <PackageId>plugin.howitzergames.storekit2</PackageId>
     <Title>StoreKit API Library</Title>
@@ -23,7 +32,6 @@
     <Owners>Ian Howard, Howitzer Games, LLC</Owners>
     <Copyright>© 2025, Ian Howard, Howizer Games, LLC</Copyright>
     <PackageProjectUrl>https://github.com/howitzergamesllc/plugin.howitzergames.storekit2</PackageProjectUrl>
-    <PackageVersion>10.0.30</PackageVersion>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeSymbols>true</IncludeSymbols>
@@ -43,6 +51,8 @@
     <Compile Include="..\..\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="sharpie\ApiDefinitionsRaw.md" Pack="False"/>
+    <None Include="sharpie\StructsAndEnumsRaw.md" Pack="False"/>
     <None Include="External-Dependency-Info.txt" Pack="True" PackagePath="THIRD-PARTY-NOTICES.txt" />
     <None Include="..\..\..\art\StoreKit2Icon.png" Pack="True" PackagePath="StoreKit2Icon.png" />
     <None Include="..\..\..\License.md" Pack="True" PackagePath="License.md" />

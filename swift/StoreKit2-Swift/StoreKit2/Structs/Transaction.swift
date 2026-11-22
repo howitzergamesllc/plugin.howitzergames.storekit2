@@ -122,11 +122,21 @@ public final class TransactionWrapper: NSObject {
             return .developerIssue
         case .other:
             return .other
+        case .upgradedToBundle:
+            return .upgradedToBundle
         default:
             return .unknown
         }
     }
-
+    
+    @objc
+    public var revocationType: TransactionRevocationTypeWrapper? {
+        if #available(iOS 26.4, macOS 26.4, tvOS 26.4, watchOS 26.4, *) {
+            guard let swiftValue = swiftValue.revocationType else { return nil }
+            return TransactionRevocationTypeWrapper(swiftValue: swiftValue)
+        }
+        return nil
+    }
     
     @objc public var productType: ProductTypeWrapper {
         ProductTypeWrapper(swiftValue: swiftValue.productType)
@@ -200,6 +210,29 @@ public final class TransactionWrapper: NSObject {
         swiftValue.currencyCode
     }
     
+    @objc public var bundleProductID: String? {
+        swiftValue.bundleProductID
+    }
+    
+    @objc public var bundleSubscriptionGroupID: String? {
+        swiftValue.bundleSubscriptionGroupID
+    }
+    
+    @objc public var previousOriginalTransactionID: NSNumber? {
+        guard let id = swiftValue.previousOriginalTransactionID else {
+            return nil
+        }
+        return NSNumber(value: id)
+    }
+    
+    @objc public var bundleTransactionID: String? {
+        swiftValue.bundleTransactionID
+    }
+    
+    @objc public var bundleOriginalTransactionID: String? {
+        swiftValue.bundleOriginalTransactionID
+    }
+    
     @objc public var appTransactionID: String {
         swiftValue.appTransactionID
     }
@@ -227,6 +260,24 @@ public final class TransactionWrapper: NSObject {
             if let info = swiftValue.advancedCommerceInfo {
                 return TransactionAdvancedCommerceInfoWrapper(swiftValue: info)
             }
+        }
+        return nil
+    }
+    
+    @objc
+    public var commitmentInfo: CommitmentInfoWrapper? {
+        if #available(iOS 26.4, macOS 26.4, tvOS 26.4, watchOS 26.4, *) {
+            guard let swiftInfo = swiftValue.commitmentInfo else { return nil }
+            return CommitmentInfoWrapper(swiftValue: swiftInfo)
+        }
+        return nil
+    }
+    
+    @objc
+    public var renewalBillingPlanType: BillingPlanTypeWrapper? {
+        if #available(iOS 26.4, macOS 26.4, tvOS 26.4, watchOS 26.4, *) {
+            guard let swiftValue = swiftValue.billingPlanType else { return nil }
+            return BillingPlanTypeWrapper(swiftValue: swiftValue)
         }
         return nil
     }
@@ -414,7 +465,7 @@ public final class TransactionWrapper: NSObject {
             } catch let error as Transaction.RefundRequestError {
                 let wrappederror = RefundRequestErrorWrapper(swiftError: error)
                 wrappedStatus = .failed
-                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: wrappederror.code.rawValue,                                      userInfo: [
+                wrappedError = NSError(domain: "maui.storekit2.apple", code: wrappederror.code.rawValue,                                      userInfo: [
                     NSLocalizedDescriptionKey: "RefundRequestError",
                     "ErrorCase": String(describing: wrappederror.code),
                     "ErrorCode": wrappederror.code,
@@ -425,7 +476,7 @@ public final class TransactionWrapper: NSObject {
             } catch let error as StoreKitError {
                 let wrappederror = StoreKitErrorWrapper(swiftError: error)
                 wrappedStatus = .failed
-                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: wrappederror.code.rawValue,                                      userInfo: [
+                wrappedError = NSError(domain: "maui.storekit2.apple", code: wrappederror.code.rawValue,                                      userInfo: [
                     NSLocalizedDescriptionKey: "StoreKitError",
                     "ErrorCase": String(describing: wrappederror.code),
                     "ErrorCode": wrappederror.code,
@@ -436,7 +487,7 @@ public final class TransactionWrapper: NSObject {
             } catch {
                 wrappedStatus = .failed
                 // Create a new generic NSError for any other Swift error
-                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: -1, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                wrappedError = NSError(domain: "maui.storekit2.apple", code: -1, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
             }
             
             completion(wrappedStatus, wrappedError)
@@ -469,7 +520,7 @@ public final class TransactionWrapper: NSObject {
             } catch let error as Transaction.RefundRequestError {
                 let wrappederror = RefundRequestErrorWrapper(swiftError: error)
                 wrappedStatus = .failed
-                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: wrappederror.code.rawValue, userInfo: [
+                wrappedError = NSError(domain: "maui.storekit2.apple", code: wrappederror.code.rawValue, userInfo: [
                     NSLocalizedDescriptionKey: "RefundRequestError",
                     "ErrorCase": String(describing: wrappederror.code),
                     "ErrorCode": wrappederror.code,
@@ -480,7 +531,7 @@ public final class TransactionWrapper: NSObject {
             } catch let error as StoreKitError {
                 let wrappederror = StoreKitErrorWrapper(swiftError: error)
                 wrappedStatus = .failed
-                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: wrappederror.code.rawValue,                                      userInfo: [
+                wrappedError = NSError(domain: "maui.storekit2.apple", code: wrappederror.code.rawValue,                                      userInfo: [
                     NSLocalizedDescriptionKey: "StoreKitError",
                     "ErrorCase": String(describing: wrappederror.code),
                     "ErrorCode": wrappederror.code,
@@ -490,7 +541,7 @@ public final class TransactionWrapper: NSObject {
                 ])
             } catch {
                 wrappedStatus = .failed
-                wrappedError = NSError(domain: "plugin.howitzergames.storekit2", code: -1, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                wrappedError = NSError(domain: "maui.storekit2.apple", code: -1, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
             }
 
             // Call completion

@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/samples/" />
+  <Folder Name="/samples/Apple/" />
+  <Folder Name="/samples/Apple/StoreKit2/" />
+  <Folder Name="/samples/Apple/StoreKit2/StoreKit2MauiSample/">
+    <Project Path="samples/Apple/StoreKit2/StoreKit2MauiSample/StoreKit2MauiSample.Nuget.csproj" />
+  </Folder>
+</Solution>

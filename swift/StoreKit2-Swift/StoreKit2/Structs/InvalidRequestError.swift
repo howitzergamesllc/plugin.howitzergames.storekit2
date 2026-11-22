@@ -33,7 +33,7 @@ public final class InvalidRequestErrorWrapper: NSObject {
     /// Convert to NSError for Objective-C compatibility
     @objc public var nsError: NSError {
         return NSError(
-            domain: "plugin.howitzergames.storekit2",
+            domain: "maui.storekit2.apple",
             code: Int(code),
             userInfo: [NSLocalizedDescriptionKey: message]
         )

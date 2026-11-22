@@ -19,6 +19,7 @@ public enum StoreKitErrorCode: Int {
     case notAvailableInStorefront
     case notEntitled
     case unsupported
+    case invalidPresentationContext
 }
 
 @objc(StoreKitError)
@@ -39,7 +40,8 @@ public final class StoreKitErrorWrapper: NSObject {
         case .notAvailableInStorefront: code = .notAvailableInStorefront; underlyingError = nil
         case .notEntitled: code = .notEntitled; underlyingError = nil
         case .unsupported: code = .unsupported; underlyingError = nil
-        @unknown default: code = .unknown; underlyingError = nil
+        case .invalidPresentationContext: code = .invalidPresentationContext; underlyingError = nil
+        default: code = .unknown; underlyingError = nil
         }
         if #available(iOS 15.4, *) {
             errorDescription = swiftError.errorDescription

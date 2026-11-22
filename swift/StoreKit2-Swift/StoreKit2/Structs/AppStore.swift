@@ -32,7 +32,7 @@ public final class AppStoreWrapper : NSObject
                 try await AppStore.sync()
                 completion(nil)
             } catch {
-                let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 completion(nsError)
             }
         }
@@ -48,7 +48,7 @@ public final class AppStoreWrapper : NSObject
                 try await AppStore.showManageSubscriptions(in: scene)
                 completion(nil)
             } catch {
-                let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 completion(nsError)
             }
         }
@@ -68,7 +68,7 @@ public final class AppStoreWrapper : NSObject
                     completion(nil)
                 } catch {
                     completion(NSError(
-                        domain: "plugin.howitzergames.storekit2",
+                        domain: "maui.storekit2.apple",
                         code: 1001,
                         userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
                     ))
@@ -76,7 +76,7 @@ public final class AppStoreWrapper : NSObject
             }
         } else {
             completion(NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: 1003,
                 userInfo: [NSLocalizedDescriptionKey: "Unsupported OS version"]
             ))
@@ -96,7 +96,7 @@ public final class AppStoreWrapper : NSObject
                     completion(nil)
                 } catch {
                     completion(NSError(
-                        domain: "plugin.howitzergames.storekit2",
+                        domain: "maui.storekit2.apple",
                         code: 1001,
                         userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
                     ))
@@ -104,10 +104,49 @@ public final class AppStoreWrapper : NSObject
             }
         } else {
             completion(NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: 1003,
                 userInfo: [NSLocalizedDescriptionKey: "Unsupported OS version"]
             ))
+        }
+    }
+    
+    @objc
+    //@available(iOS 27.0, *)(macOS, unavailable)(watchOS, unavailable)(tvOS, unavailable)
+    public static func presentOfferCodeRedeemSheetAsync(
+        from viewController: UIViewController,
+        options: Set<RedeemOptionWrapper>,
+        completion: @escaping (TransactionVerificationResultWrapper?, NSError?) -> Void
+    ) {
+        if #available(iOS 27.0, *) {
+            Task { @MainActor in
+                do {
+                    let redeemOptions: Set<RedeemOption> = Set(
+                        options.compactMap { wrapper in
+                            wrapper.swiftValue as? RedeemOption
+                        }
+                    )
+                    let result = try await AppStore.presentOfferCodeRedeemSheet(
+                        from: viewController,
+                        options: redeemOptions
+                    )
+                    completion(TransactionVerificationResultWrapper(verification: result), nil)
+                } catch {
+                    completion(nil,NSError(
+                            domain: "maui.storekit2.apple",
+                            code: 1001,
+                            userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
+                        )
+                    )
+                }
+            }
+        } else {
+            completion(nil, NSError(
+                    domain: "maui.storekit2.apple",
+                    code: 1003,
+                    userInfo: [NSLocalizedDescriptionKey: "Unsupported OS version"]
+                )
+            )
         }
     }
     
@@ -133,7 +172,7 @@ public final class AppStoreWrapper : NSObject
                     // Fallback for older OSes
                     let wrapperResult = AppStoreMerchandisingKindPresentationResultWrapper(underlying: nil)
                     let nsError = NSError(
-                        domain: "plugin.howitzergames.storekit2",
+                        domain: "maui.storekit2.apple",
                         code: 1002,
                         userInfo: [NSLocalizedDescriptionKey: "AppStoreMerchandisingKind not available on this OS"]
                     )
@@ -143,7 +182,7 @@ public final class AppStoreWrapper : NSObject
                 // Handle runtime errors safely
                 let wrapperResult = AppStoreMerchandisingKindPresentationResultWrapper(underlying: nil)
                 let nsError = NSError(
-                    domain: "plugin.howitzergames.storekit2",
+                    domain: "maui.storekit2.apple",
                     code: 1001,
                     userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
                 )

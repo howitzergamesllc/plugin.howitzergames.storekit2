@@ -1,0 +1,11 @@
+<Shell
+    x:Class="StoreKit2MauiSample.AppShell"
+    xmlns:local="clr-namespace:StoreKit2MauiSample"
+    Title="StoreKit2MauiSample">
+
+    <ShellContent
+        Title="Home"
+        ContentTemplate="{DataTemplate local:MainPage}"
+        Route="MainPage" />
+
+</Shell>

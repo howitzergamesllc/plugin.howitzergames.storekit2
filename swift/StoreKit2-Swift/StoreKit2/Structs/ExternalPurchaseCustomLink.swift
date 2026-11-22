@@ -46,7 +46,7 @@ public final class ExternalPurchaseCustomLinkWrapper: NSObject {
                     completion(ExternalPurchaseCustomLinkNoticeResultWrapper(swiftResult: result), nil)
                 } catch let error as StoreKitError {
                     let wrappedError = StoreKitErrorWrapper(swiftError: error)
-                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                    let nsError = NSError(domain: "maui.storekit2.apple",
                                           code: wrappedError.code.rawValue,
                                           userInfo: [
                                             NSLocalizedDescriptionKey: "StoreKitError",
@@ -58,7 +58,7 @@ public final class ExternalPurchaseCustomLinkWrapper: NSObject {
                                           ])
                     completion(nil, nsError)
                 } catch {
-                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                    let nsError = NSError(domain: "maui.storekit2.apple",
                                           code: 1001,
                                           userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                     completion(nil, nsError)
@@ -66,7 +66,7 @@ public final class ExternalPurchaseCustomLinkWrapper: NSObject {
             }
         } else {
             // Runtime fallback
-            let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+            let nsError = NSError(domain: "maui.storekit2.apple",
                                   code: 1003,
                                   userInfo: [NSLocalizedDescriptionKey: "ExternalPurchaseCustomLink is not available on this OS version"])
             completion(nil, nsError)
@@ -88,7 +88,7 @@ public final class ExternalPurchaseCustomLinkWrapper: NSObject {
                     }
                 } catch let error as StoreKitError {
                     let wrappedError = StoreKitErrorWrapper(swiftError: error)
-                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                    let nsError = NSError(domain: "maui.storekit2.apple",
                                           code: wrappedError.code.rawValue,
                                           userInfo: [
                                             NSLocalizedDescriptionKey: "StoreKitError",
@@ -100,7 +100,7 @@ public final class ExternalPurchaseCustomLinkWrapper: NSObject {
                                           ])
                     completion(nil, nsError)
                 } catch {
-                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                    let nsError = NSError(domain: "maui.storekit2.apple",
                                           code: 1001,
                                           userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                     completion(nil, nsError)
@@ -108,7 +108,7 @@ public final class ExternalPurchaseCustomLinkWrapper: NSObject {
             }
         } else {
             // Runtime fallback
-            let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+            let nsError = NSError(domain: "maui.storekit2.apple",
                                   code: 1003,
                                   userInfo: [NSLocalizedDescriptionKey: "ExternalPurchaseCustomLink is not available on this OS version"])
             completion(nil, nsError)

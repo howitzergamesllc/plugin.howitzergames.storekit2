@@ -35,7 +35,7 @@ public final class ExternalPurchaseLinkWrapper: NSObject {
                     completion(nil)
                 } catch {
                     let nsError = NSError(
-                        domain: "plugin.howitzergames.storekit2",
+                        domain: "maui.storekit2.apple",
                         code: 1001,
                         userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
                     )
@@ -44,7 +44,7 @@ public final class ExternalPurchaseLinkWrapper: NSObject {
             }
         } else {
             let error = NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: -1,
                 userInfo: [NSLocalizedDescriptionKey: "ExternalPurchaseLink.open() not available on this OS version."]
             )
@@ -77,7 +77,7 @@ public final class ExternalPurchaseLinkWrapper: NSObject {
                     completion(nil)
                 } catch let error as StoreKitError {
                     let wrappederror = StoreKitErrorWrapper(swiftError: error)
-                    let nserror = NSError(domain: "plugin.howitzergames.storekit2",
+                    let nserror = NSError(domain: "maui.storekit2.apple",
                                           code: wrappederror.code.rawValue,
                                           userInfo: [
                                             NSLocalizedDescriptionKey: "StoreKitError",
@@ -89,14 +89,14 @@ public final class ExternalPurchaseLinkWrapper: NSObject {
                                           ])
                     completion(nserror)
                 } catch {
-                    let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                    let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                     completion(nsError)
                 }
             }
         } else {
             // Not available on older OS versions
             let error = NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: -1,
                 userInfo: [NSLocalizedDescriptionKey: "open(url:) is not available on this OS version."]
             )

@@ -77,7 +77,7 @@ public final class ProductWrapper: NSObject {
                 completion(ProductPurchaseResultWrapper(result), nil)
             } catch let purchaseError as Product.PurchaseError {
                 let wrappederror = ProductPurchaseErrorWrapper(swiftError: purchaseError)
-                let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                let nsError = NSError(domain: "maui.storekit2.apple",
                                       code: wrappederror.code.rawValue,
                                       userInfo: [
                                           NSLocalizedDescriptionKey: "PurchaseError",
@@ -90,7 +90,7 @@ public final class ProductWrapper: NSObject {
                 completion(nil, nsError)
             } catch let error as StoreKitError {
                 let wrappederror = StoreKitErrorWrapper(swiftError: error)
-                let nserror = NSError(domain: "plugin.howitzergames.storekit2",
+                let nserror = NSError(domain: "maui.storekit2.apple",
                                       code: wrappederror.code.rawValue,
                                       userInfo: [
                                         NSLocalizedDescriptionKey: "StoreKitError",
@@ -103,7 +103,7 @@ public final class ProductWrapper: NSObject {
                 completion(nil, nserror)
             } catch let error{
                 // Catch any other errors and wrap them in an NSError
-                let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                let nsError = NSError(domain: "maui.storekit2.apple",
                                       code: 1001, // Custom code for unknown errors
                                       userInfo: [
                                         NSLocalizedDescriptionKey: error.localizedDescription
@@ -128,7 +128,7 @@ public final class ProductWrapper: NSObject {
                     completion(ProductPurchaseResultWrapper(result), nil)
                 } catch let purchaseError as Product.PurchaseError {
                     let wrappederror = ProductPurchaseErrorWrapper(swiftError: purchaseError)
-                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                    let nsError = NSError(domain: "maui.storekit2.apple",
                                           code: wrappederror.code.rawValue,
                                           userInfo: [
                                               NSLocalizedDescriptionKey: "PurchaseError",
@@ -141,7 +141,7 @@ public final class ProductWrapper: NSObject {
                     completion(nil, nsError)
                 } catch let error as StoreKitError {
                     let wrappederror = StoreKitErrorWrapper(swiftError: error)
-                    let nserror = NSError(domain: "plugin.howitzergames.storekit2",
+                    let nserror = NSError(domain: "maui.storekit2.apple",
                                           code: wrappederror.code.rawValue,
                                           userInfo: [
                                             NSLocalizedDescriptionKey: "StoreKitError",
@@ -153,7 +153,7 @@ public final class ProductWrapper: NSObject {
                                           ])
                     completion(nil, nserror)
                 } catch {
-                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                    let nsError = NSError(domain: "maui.storekit2.apple",
                                           code: 1001,
                                           userInfo: [
                                             NSLocalizedDescriptionKey: error.localizedDescription
@@ -164,7 +164,7 @@ public final class ProductWrapper: NSObject {
         } else {
             // Runtime fallback for older OS
             let nsError = NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: -1,
                 userInfo: [NSLocalizedDescriptionKey: "purchaseAsync is not available on this OS version."]
             )
@@ -187,7 +187,7 @@ public final class ProductWrapper: NSObject {
                     completion(ProductPurchaseResultWrapper(result), nil)
                 } catch let purchaseError as Product.PurchaseError {
                     let wrappederror = ProductPurchaseErrorWrapper(swiftError: purchaseError)
-                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                    let nsError = NSError(domain: "maui.storekit2.apple",
                                           code: wrappederror.code.rawValue,
                                           userInfo: [
                                               NSLocalizedDescriptionKey: "PurchaseError",
@@ -200,7 +200,7 @@ public final class ProductWrapper: NSObject {
                     completion(nil, nsError)
                 } catch let error as StoreKitError {
                     let wrappederror = StoreKitErrorWrapper(swiftError: error)
-                    let nserror = NSError(domain: "plugin.howitzergames.storekit2",
+                    let nserror = NSError(domain: "maui.storekit2.apple",
                                           code: wrappederror.code.rawValue,
                                           userInfo: [
                                             NSLocalizedDescriptionKey: "StoreKitError",
@@ -212,7 +212,7 @@ public final class ProductWrapper: NSObject {
                                           ])
                     completion(nil, nserror)
                 } catch {
-                    let nsError = NSError(domain: "plugin.howitzergames.storekit2",
+                    let nsError = NSError(domain: "maui.storekit2.apple",
                                           code: 1001,
                                           userInfo: [
                                             NSLocalizedDescriptionKey: error.localizedDescription
@@ -223,7 +223,7 @@ public final class ProductWrapper: NSObject {
         } else {
             // Runtime fallback for OS versions <18.2
             let nsError = NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: -1,
                 userInfo: [NSLocalizedDescriptionKey: "purchaseAsync(confirmIn:viewController:) is not available on this OS version."]
             )
@@ -247,7 +247,7 @@ public final class ProductWrapper: NSObject {
                 completion(wrapped, nil)
             } catch let error as StoreKitError {
                 let wrappederror = StoreKitErrorWrapper(swiftError: error)
-                let nserror = NSError(domain: "plugin.howitzergames.storekit2",
+                let nserror = NSError(domain: "maui.storekit2.apple",
                                       code: wrappederror.code.rawValue,
                                       userInfo: [
                                         NSLocalizedDescriptionKey: "StoreKitError",
@@ -295,7 +295,7 @@ public final class ProductWrapper: NSObject {
                 completion(wrapped, nil)
             } else {
                 let nsError = NSError(
-                    domain: "plugin.howitzergames.storekit2",
+                    domain: "maui.storekit2.apple",
                     code: wrapped.error.rawValue,
                     userInfo: [
                         NSLocalizedDescriptionKey: "VerificationError",
@@ -328,7 +328,7 @@ public final class ProductWrapper: NSObject {
                     if !wrapped.isVerified {
                         unverifiedCount += 1
                         lastError = NSError(
-                            domain: "plugin.howitzergames.storekit2",
+                            domain: "maui.storekit2.apple",
                             code: wrapped.error.rawValue,
                             userInfo: [
                                 NSLocalizedDescriptionKey: "VerificationError",
@@ -347,7 +347,7 @@ public final class ProductWrapper: NSObject {
         } else {
             // Runtime fallback for older OS versions
             let nsError = NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: -1,
                 userInfo: [
                     NSLocalizedDescriptionKey: "currentEntitlementsAsync is not available on this OS version."

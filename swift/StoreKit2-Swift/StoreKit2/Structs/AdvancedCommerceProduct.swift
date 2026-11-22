@@ -38,7 +38,7 @@ public final class AdvancedCommerceProductWrapper: NSObject {
         completion: @escaping (AdvancedCommerceProductWrapper?, NSError?) -> Void
     ) {
         guard #available(iOS 18.4, macOS 15.4, tvOS 18.4, *) else {
-            completion(nil, NSError(domain: "plugin.howitzergames.storekit2", code: 1003,
+            completion(nil, NSError(domain: "maui.storekit2.apple", code: 1003,
                                     userInfo: [NSLocalizedDescriptionKey: "Unsupported OS version"]))
             return
         }
@@ -50,7 +50,7 @@ public final class AdvancedCommerceProductWrapper: NSObject {
                 completion(wrapper, nil)
             } catch {
                 let nsError = NSError(
-                    domain: "plugin.howitzergames.storekit2",
+                    domain: "maui.storekit2.apple",
                     code: 1001,
                     userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
                 )
@@ -85,14 +85,14 @@ public final class AdvancedCommerceProductWrapper: NSObject {
                     )
                     completion(ProductPurchaseResultWrapper(result), nil)
                 } catch {
-                    completion(nil, NSError(domain: "plugin.howitzergames.storekit2",
+                    completion(nil, NSError(domain: "maui.storekit2.apple",
                                             code: 1001,
                                             userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]))
                 }
             }
 
         } else {
-            completion(nil, NSError(domain: "plugin.howitzergames.storekit2",
+            completion(nil, NSError(domain: "maui.storekit2.apple",
                                     code: 1003,
                                     userInfo: [NSLocalizedDescriptionKey: "Unsupported OS version"]))
         }

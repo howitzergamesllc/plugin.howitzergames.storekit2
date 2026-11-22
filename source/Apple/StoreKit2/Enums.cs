@@ -33,13 +33,15 @@ public enum PurchaseErrorCode
 	InvalidOfferPrice = 5,
 	InvalidOfferSignature = 6,
 	MissingOfferParameters = 7,
-	Unknown = 8
+	PaymentMethodBindingConfigurationRequired = 8,
+	Unknown = 9
 }
 
 public enum RefundRequestErrorCode
 {
 	DuplicateRequest = 0,
 	Failed = 1,
+	Ineligible = 2,
 	Unknown = -1
 }
 
@@ -59,7 +61,8 @@ public enum StoreKitErrorCode
 	SystemError = 3,
 	NotAvailableInStorefront = 4,
 	NotEntitled = 5,
-	Unsupported = 6
+	Unsupported = 6,
+	InvalidPresentationContext = 7
 }
 
 public enum TransactionOfferType
@@ -75,6 +78,7 @@ public enum TransactionRevocationReason
 {
 	DeveloperIssue = 0,
 	Other = 1,
+	UpgradedToBundle = 2,
 	Unknown = -1
 }
 

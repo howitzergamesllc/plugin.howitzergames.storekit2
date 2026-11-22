@@ -90,7 +90,7 @@ public final class AppTransactionVerificationResultWrapper : NSObject {
         guard isVerified, let transaction else {
             let verificationerror = VerificationErrorCode(rawValue: error.rawValue)
             let nsError = NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: self.error.rawValue,
                 userInfo: [
                     NSLocalizedDescriptionKey: "VerificationError",
@@ -172,7 +172,7 @@ public final class TransactionVerificationResultWrapper: NSObject {
     @objc public func getPayloadValue() throws -> TransactionWrapper {
         if !self.isVerified {
             let nsError = NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: self.error.rawValue,
                 userInfo: [
                     NSLocalizedDescriptionKey: "VerificationError",
@@ -260,7 +260,7 @@ public final class RenewalInfoVerificationResultWrapper: NSObject {
     @objc public func getPayloadValue() throws -> RenewalInfoWrapper {
         if !self.isVerified {
             let nsError = NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: self.error.rawValue,
                 userInfo: [
                     NSLocalizedDescriptionKey: "VerificationError",

@@ -41,7 +41,40 @@ public final class AppTransactionWrapper: NSObject {
     @objc public let preorderDate: Date?
     @objc public let deviceVerification: Data
     @objc public let deviceVerificationNonce: NSUUID
+    
+    @objc public var revocationDate: Date? {
+        if #available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *) {
+            guard let appTransaction = transaction as? AppTransaction else { return nil }
+            return appTransaction.revocationDate
+        }
+        return nil
+    }
+    
     @objc public let signedDate: Date
+    
+    @objc
+    public var storeType: AppTransactionStoreTypeWrapper? {
+        if #available(iOS 27.0, macOS 27.0, tvOS 27.0, watchOS 27.0, *) {
+            guard let transaction = transaction as? AppTransaction else {
+                return nil
+            }
+            return AppTransactionStoreTypeWrapper(
+                swiftValue: transaction.storeType
+            )
+        }
+        return nil
+    }
+    
+    @objc
+    public var storeTypeStringRepresentation: String {
+        if #available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *) {
+            guard let transaction = transaction as? AppTransaction else {
+                return "unknown"
+            }
+            return transaction.storeTypeStringRepresentation
+        }
+        return "unknown"
+    }
     
     public init(transaction: Any?) {
         self.transaction = transaction
@@ -86,9 +119,49 @@ public final class AppTransactionWrapper: NSObject {
         }
     }
     
+    @objc
+    public static func getAllTransactionsAsync(
+        completion: @escaping ([AppTransactionWrapper]?, NSError?) -> Void
+    ) {
+        guard #available(iOS 27.0, macOS 27.0, tvOS 27.0, watchOS 27.0, *) else {
+            completion(nil, NSError(
+                domain: "maui.storekit2.apple",
+                code: 1003,
+                userInfo: [NSLocalizedDescriptionKey: "Unsupported OS version"]
+            ))
+            return
+        }
+
+        Task {
+            let transactions = AppTransaction.all
+            var wrappers: [AppTransactionWrapper] = []
+
+            for await verification in transactions {
+                switch verification {
+                case .verified(let transaction):
+                    wrappers.append(
+                        AppTransactionWrapper(transaction: transaction)
+                    )
+
+                case .unverified(_, let error):
+                    completion(nil, NSError(
+                        domain: "maui.storekit2.apple",
+                        code: 1001,
+                        userInfo: [
+                            NSLocalizedDescriptionKey: error.localizedDescription
+                        ]
+                    ))
+                    return
+                }
+            }
+
+            completion(wrappers, nil)
+        }
+    }
+    
     @objc public static func getSharedTransactionAsync(completion: @escaping (AppTransactionWrapper?, NSError?) -> Void) {
         guard #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) else {
-            completion(nil, NSError(domain: "plugin.howitzergames.storekit2", code: 1003,
+            completion(nil, NSError(domain: "maui.storekit2.apple", code: 1003,
                                     userInfo: [NSLocalizedDescriptionKey: "Unsupported OS version"]))
             return
         }
@@ -100,11 +173,11 @@ public final class AppTransactionWrapper: NSObject {
                 case .verified(let transaction):
                     completion(AppTransactionWrapper(transaction: transaction), nil)
                 case .unverified(_, let error):
-                    let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                    let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                     completion(nil, nsError)
                 }
             } catch {
-                let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 completion(nil, nsError)
             }
         }
@@ -112,7 +185,7 @@ public final class AppTransactionWrapper: NSObject {
     
     @objc public static func refreshTransactionAsync(completion: @escaping (AppTransactionWrapper?, NSError?) -> Void) {
         guard #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) else {
-            completion(nil, NSError(domain: "plugin.howitzergames.storekit2", code: 1003,
+            completion(nil, NSError(domain: "maui.storekit2.apple", code: 1003,
                                     userInfo: [NSLocalizedDescriptionKey: "Unsupported OS version"]))
             return
         }
@@ -124,11 +197,11 @@ public final class AppTransactionWrapper: NSObject {
                 case .verified(let transaction):
                     completion(AppTransactionWrapper(transaction: transaction), nil)
                 case .unverified(_, let error):
-                    let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                    let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                     completion(nil, nsError)
                 }
             } catch {
-                let nsError = NSError(domain: "plugin.howitzergames.storekit2", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+                let nsError = NSError(domain: "maui.storekit2.apple", code: 1001, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
                 completion(nil, nsError)
             }
         }

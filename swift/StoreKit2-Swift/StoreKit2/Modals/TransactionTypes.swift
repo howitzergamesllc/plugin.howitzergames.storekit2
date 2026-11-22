@@ -58,7 +58,72 @@ public final class TransactionReasonWrapper: NSObject {
 public enum TransactionRevocationReasonCode: Int {
     case developerIssue = 0
     case other = 1
+    case upgradedToBundle = 2
     case unknown = -1
+}
+
+// MARK: - TransactionRevocationType
+@objc(TransactionRevocationType)
+//(iOS 26.4, macOS 26.4, tvOS 26.4, watchOS 26.4, *)
+public final class TransactionRevocationTypeWrapper: NSObject {
+
+    private let storedValue: Any?
+    private let storedRawValue: String
+
+    @objc public var rawValue: String {
+        return storedRawValue
+    }
+
+    @available(iOS 26.4, macOS 26.4, tvOS 26.4, watchOS 26.4, *)
+    public var swiftValue: Transaction.RevocationType? {
+        return storedValue as? Transaction.RevocationType
+    }
+
+    @available(iOS 26.4, macOS 26.4, tvOS 26.4, watchOS 26.4, *)
+    public init(swiftValue: Transaction.RevocationType) {
+        self.storedValue = swiftValue
+        self.storedRawValue = swiftValue.rawValue
+        super.init()
+    }
+
+    @objc public init(rawValue: String) {
+        self.storedValue = nil
+        self.storedRawValue = rawValue
+        super.init()
+    }
+
+    @objc public static var familyRevocation: TransactionRevocationTypeWrapper {
+        if #available(iOS 26.4, macOS 26.4, tvOS 26.4, watchOS 26.4, *) {
+            return TransactionRevocationTypeWrapper(swiftValue: .familyRevocation)
+        }
+        return TransactionRevocationTypeWrapper(rawValue: "unsupported")
+    }
+
+    @objc public static var fullRefund: TransactionRevocationTypeWrapper {
+        if #available(iOS 26.4, macOS 26.4, tvOS 26.4, watchOS 26.4, *) {
+            return TransactionRevocationTypeWrapper(swiftValue: .fullRefund)
+        }
+        return TransactionRevocationTypeWrapper(rawValue: "unsupported")
+    }
+
+    @objc public static var proratedRefund: TransactionRevocationTypeWrapper {
+        if #available(iOS 26.4, macOS 26.4, tvOS 26.4, watchOS 4.0, *) {
+            return TransactionRevocationTypeWrapper(swiftValue: .proratedRefund)
+        }
+        return TransactionRevocationTypeWrapper(rawValue: "unsupported")
+    }
+
+    @objc public static var assignmentRevocation: TransactionRevocationTypeWrapper {
+        if #available(iOS 26.4, macOS 26.4, tvOS 26.4, watchOS 26.4, *) {
+            return TransactionRevocationTypeWrapper(swiftValue: .assignmentRevocation)
+        }
+        return TransactionRevocationTypeWrapper(rawValue: "unsupported")
+    }
+
+    @objc public func isEqualToType(_ other: TransactionRevocationTypeWrapper?) -> Bool {
+        guard let other else { return false }
+        return rawValue == other.rawValue
+    }
 }
 
 // MARK: - Transaction.OfferType
@@ -91,6 +156,10 @@ public final class TransactionOwnershipTypeWrapper: NSObject {
 
     @objc public static let familyShared =
         TransactionOwnershipTypeWrapper(swiftValue: .familyShared)
+    
+    @objc public static var assigned: TransactionOwnershipTypeWrapper {
+        TransactionOwnershipTypeWrapper(swiftValue: .assigned)
+    }
 
     @objc public func isEqualToType(_ other: TransactionOwnershipTypeWrapper?) -> Bool {
         guard let other = other else { return false }
@@ -317,6 +386,20 @@ public final class TransactionAdvancedCommerceInfoItemDetailsWrapper: NSObject {
             return details.price as NSDecimalNumber
         }
         return NSDecimalNumber.zero
+    }
+
+    @objc
+    public var partners: NSArray {
+        if #available(iOS 27.0, macOS 27.0, tvOS 27.0, watchOS 27.0, *) {
+            guard let details = underlying as? Transaction.AdvancedCommerceInfo.Item.Details else {
+                return []
+            }
+
+            return details.partners.compactMap {
+                TransactionAdvancedCommercePartnerWrapper(swiftValue: $0)
+            } as NSArray
+        }
+        return []
     }
 }
 
@@ -546,6 +629,7 @@ public final class TransactionAdvancedCommerceInfoRefundTypeWrapper: NSObject {
 public enum RefundRequestErrorCode: Int {
     case duplicateRequest = 0
     case failed = 1
+    case ineligible = 2
     case unknown = -1
 }
 
@@ -564,13 +648,14 @@ public final class RefundRequestErrorWrapper: NSObject {
         switch swiftError {
         case .duplicateRequest: code = .duplicateRequest
         case .failed: code = .failed
-        @unknown default: code = .unknown
+        case .ineligible: code = .ineligible
+        default: code = .unknown
         }
     }
     
     // MARK: - LocalizedError bridging
     @objc public var errorDescription: String? {
-        if #available(macCatalyst 15.4, *) {
+        if #available(iOS 15.4, macCatalyst 15.4, *) {
             swiftError.errorDescription
         } else {
             "Unsupported on the OS version"
@@ -578,7 +663,7 @@ public final class RefundRequestErrorWrapper: NSObject {
     }
 
     @objc public var failureReason: String? {
-        if #available(macCatalyst 15.4, *) {
+        if #available(iOS 15.4, macCatalyst 15.4, *) {
             swiftError.failureReason
         } else {
             "Unsupported on the OS version"
@@ -586,7 +671,7 @@ public final class RefundRequestErrorWrapper: NSObject {
     }
 
     @objc public var recoverySuggestion: String? {
-        if #available(macCatalyst 15.4, *) {
+        if #available(iOS 15.4, macCatalyst 15.4, *) {
             swiftError.recoverySuggestion
         } else {
             "Unsupported on the OS version"

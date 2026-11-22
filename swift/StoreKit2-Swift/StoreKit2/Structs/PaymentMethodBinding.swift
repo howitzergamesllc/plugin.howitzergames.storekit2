@@ -32,7 +32,7 @@ public final class PaymentMethodBindingWrapper: NSObject {
                 } catch let error as PaymentMethodBinding.PaymentMethodBindingError {
                     let wrappederror = PaymentMethodBindingErrorWrapper(swiftError: error)
                     let nsError = NSError(
-                        domain: "plugin.howitzergames.storekit2",
+                        domain: "maui.storekit2.apple",
                         code: wrappederror?.code.rawValue ?? -1,
                         userInfo: [
                             NSLocalizedDescriptionKey: "BindingError",
@@ -46,7 +46,7 @@ public final class PaymentMethodBindingWrapper: NSObject {
                     completion(nil, nsError)
                 } catch {
                     let nsError = NSError(
-                        domain: "plugin.howitzergames.storekit2",
+                        domain: "maui.storekit2.apple",
                         code: -1,
                         userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
                     )
@@ -56,7 +56,7 @@ public final class PaymentMethodBindingWrapper: NSObject {
         } else {
             // Fallback for older OS versions
             let error = NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: -1,
                 userInfo: [NSLocalizedDescriptionKey: "PaymentMethodBinding is not available on this OS version."]
             )

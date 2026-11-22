@@ -42,7 +42,7 @@ public final class ExternalPurchaseWrapper: NSObject {
                 } catch let error as StoreKitError {
                     let wrappedError = StoreKitErrorWrapper(swiftError: error)
                     let nsError = NSError(
-                        domain: "plugin.howitzergames.storekit2",
+                        domain: "maui.storekit2.apple",
                         code: wrappedError.code.rawValue,
                         userInfo: [
                             NSLocalizedDescriptionKey: "StoreKitError",
@@ -58,7 +58,7 @@ public final class ExternalPurchaseWrapper: NSObject {
                     }
                 } catch {
                     let nsError = NSError(
-                        domain: "plugin.howitzergames.storekit2",
+                        domain: "maui.storekit2.apple",
                         code: 1001,
                         userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
                     )
@@ -70,7 +70,7 @@ public final class ExternalPurchaseWrapper: NSObject {
         } else {
             // Unsupported OS version
             let nsError = NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: 1003,
                 userInfo: [NSLocalizedDescriptionKey: "Unsupported OS version"]
             )

@@ -35,7 +35,7 @@ public final class MessageWrapper: NSObject {
     public func displayIn(_ scene: UIWindowScene, error: NSErrorPointer) -> Bool {
         if #available(iOS 16.0, *) {
             guard let message = swiftMessage as? Message else {
-                error?.pointee = NSError(domain: "plugin.howitzergames.storekit2",
+                error?.pointee = NSError(domain: "maui.storekit2.apple",
                                          code: -1,
                                          userInfo: [NSLocalizedDescriptionKey: "Message not available"])
                 return false
@@ -46,7 +46,7 @@ public final class MessageWrapper: NSObject {
                 return true
             } catch let skerror as StoreKitError {
                 let wrappederror = StoreKitErrorWrapper(swiftError: skerror)
-                let nserror = NSError(domain: "plugin.howitzergames.storekit2",
+                let nserror = NSError(domain: "maui.storekit2.apple",
                                       code: wrappederror.code.rawValue,
                                       userInfo: [
                                         NSLocalizedDescriptionKey: "StoreKitError",
@@ -65,7 +65,7 @@ public final class MessageWrapper: NSObject {
 
         } else {
             // iOS <16: not available
-            error?.pointee = NSError(domain: "plugin.howitzergames.storekit2",
+            error?.pointee = NSError(domain: "maui.storekit2.apple",
                                      code: -1,
                                      userInfo: [NSLocalizedDescriptionKey: "Message not available on this OS"])
             return false
@@ -85,7 +85,7 @@ public final class MessageWrapper: NSObject {
             }
         } else {
             let nsError = NSError(
-                domain: "plugin.howitzergames.storekit2",
+                domain: "maui.storekit2.apple",
                 code: -1,
                 userInfo: [NSLocalizedDescriptionKey: "Messages API not available on this OS version."]
             )

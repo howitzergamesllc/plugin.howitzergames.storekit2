@@ -87,7 +87,7 @@ public final class AppStorePlatformWrapper: NSObject {
         if #available(iOS 18.4, tvOS 18.4, macOS 15.4, *) {
             return AppStorePlatformWrapper(swiftPlatform: AppStore.Platform.iOS)!
         } else {
-            return AppStorePlatformWrapper(rawValue: "iOS")
+            return AppStorePlatformWrapper(rawValue: "unsupported")
         }
     }
 
@@ -95,7 +95,7 @@ public final class AppStorePlatformWrapper: NSObject {
         if #available(iOS 18.4, tvOS 18.4, macOS 15.4, *) {
             return AppStorePlatformWrapper(swiftPlatform: AppStore.Platform.macOS)!
         } else {
-            return AppStorePlatformWrapper(rawValue: "macOS")
+            return AppStorePlatformWrapper(rawValue: "unsupported")
         }
     }
 
@@ -103,7 +103,7 @@ public final class AppStorePlatformWrapper: NSObject {
         if #available(iOS 18.4, tvOS 18.4, macOS 15.4, *) {
             return AppStorePlatformWrapper(swiftPlatform: AppStore.Platform.tvOS)!
         } else {
-            return AppStorePlatformWrapper(rawValue: "tvOS")
+            return AppStorePlatformWrapper(rawValue: "unsupported")
         }
     }
 
@@ -111,12 +111,91 @@ public final class AppStorePlatformWrapper: NSObject {
         if #available(iOS 18.4, tvOS 18.4, macOS 15.4, *) {
             return AppStorePlatformWrapper(swiftPlatform: AppStore.Platform.visionOS)!
         } else {
-            return AppStorePlatformWrapper(rawValue: "visionOS")
+            return AppStorePlatformWrapper(rawValue: "unsupported")
         }
+    }
+    
+    @objc public static var managed: AppStorePlatformWrapper {
+        if #available(iOS 18.4, tvOS 18.4, macOS 15.4, *) {
+            return AppStorePlatformWrapper(swiftPlatform: AppStore.Platform.managed)!
+        }
+        return AppStorePlatformWrapper(rawValue: "unsupported")
     }
 
     @objc public func isEqualToPlatform(_ other: AppStorePlatformWrapper?) -> Bool {
         guard let other = other else { return false }
         return self.rawValue == other.rawValue
+    }
+}
+
+// MARK: - AppTransactionStoreType
+@objc(AppTransactionStoreType)
+public final class AppTransactionStoreTypeWrapper: NSObject {
+
+    private let storedValue: Any?
+
+    @objc public let rawValue: String
+
+    @nonobjc
+    public init?(swiftValue: Any?) {
+        guard #available(iOS 27.0, macOS 27.0, tvOS 27.0, watchOS 27.0, *) else {
+            self.rawValue = "unsupported"
+            return nil
+        }
+
+        guard let value = swiftValue as? AppTransaction.StoreType else {
+            return nil
+        }
+
+        self.storedValue = value
+        self.rawValue = value.rawValue
+        super.init()
+    }
+
+    @objc public init(rawValue: String) {
+        self.storedValue = nil
+        self.rawValue = rawValue
+        super.init()
+    }
+
+    @nonobjc
+    public var swiftValue: Any? {
+        guard #available(iOS 27.0, macOS 27.0, tvOS 27.0, watchOS 27.0, *) else {
+            return nil
+        }
+
+        return storedValue as? AppTransaction.StoreType
+    }
+
+    @objc public static var consumer: AppTransactionStoreTypeWrapper {
+        if #available(iOS 27.0, macOS 27.0, tvOS 27.0, watchOS 27.0, *) {
+            return AppTransactionStoreTypeWrapper(
+                rawValue: AppTransaction.StoreType.consumer.rawValue
+            )
+        }
+        return AppTransactionStoreTypeWrapper(rawValue: "unsupported")
+    }
+
+    @objc public static var education: AppTransactionStoreTypeWrapper {
+        if #available(iOS 27.0, macOS 27.0, tvOS 27.0, watchOS 27.0, *) {
+            return AppTransactionStoreTypeWrapper(
+                rawValue: AppTransaction.StoreType.education.rawValue
+            )
+        }
+        return AppTransactionStoreTypeWrapper(rawValue: "unsupported")
+    }
+
+    @objc public static var enterprise: AppTransactionStoreTypeWrapper {
+        if #available(iOS 27.0, macOS 27.0, tvOS 27.0, watchOS 27.0, *) {
+            return AppTransactionStoreTypeWrapper(
+                rawValue: AppTransaction.StoreType.enterprise.rawValue
+            )
+        }
+        return AppTransactionStoreTypeWrapper(rawValue: "unsupported")
+    }
+
+    @objc public func isEqualToType(_ other: AppTransactionStoreTypeWrapper?) -> Bool {
+        guard let other else { return false }
+        return rawValue == other.rawValue
     }
 }

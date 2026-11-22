@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/samples/" />
+  <Folder Name="/samples/Apple/" />
+  <Folder Name="/samples/Apple/StoreKit2/">
+    <Project Path="samples/Apple/StoreKit2/StoreKit2MauiSample/StoreKit2MauiSample.csproj" />
+  </Folder>
+  <Folder Name="/source/" />
+  <Folder Name="/source/Apple/">
+    <Project Path="source/Apple/StoreKit2/StoreKit2.csproj" />
+  </Folder>
+</Solution>
